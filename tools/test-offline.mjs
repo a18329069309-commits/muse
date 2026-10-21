@@ -7,13 +7,14 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const temporary = path.join(root,'.muse','test-temp');
 await mkdir(temporary,{recursive:true});
 const environment = {...process.env,TMP:temporary,TEMP:temporary,TMPDIR:temporary,PYTHONDONTWRITEBYTECODE:'1'};
-delete environment.NODE_OPTIONS;
 for (const key of Object.keys(environment)) {
-  if (/^(?:SDR_|OPENAI_|ANTHROPIC_|GEMINI_)/i.test(key)
+  if (/^(?:NODE_OPTIONS|FFREPORT|REPORT|AV_LOG_FORCE_COLOR)$/i.test(key)
+    || /^(?:SDR_|OPENAI_|ANTHROPIC_|GEMINI_)/i.test(key)
     ||/(?:API_KEY|ACCESS_TOKEN|AUTH_TOKEN|SECRET_KEY|PASSWORD)$/i.test(key)) delete environment[key];
 }
 const tests = ['test_episode_task_queue.mjs','test_sound_arc_plan.mjs','test_render_audio.mjs',
-  'test_music_edit_operation_contract.mjs','test_sound_edit_decision_contract.mjs','test_prepare_episode.mjs'];
+  'test_music_edit_operation_contract.mjs','test_sound_edit_decision_contract.mjs','test_prepare_episode.mjs',
+  'test_doctor.mjs','test_demo_offline.mjs'];
 const start=Date.now();let output='';
 const child = spawn(process.execPath,['--import',pathToFileURL(path.join(root,'tools/no-network.mjs')).href,
   '--test','--test-reporter=tap','--test-concurrency=1',...tests.map(file=>path.join(root,'tests',file))],

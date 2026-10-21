@@ -6,7 +6,7 @@
 
 ## 发布状态
 
-这是 **0.1.0-preview.1 源码预览版**，不是开箱即用的桌面安装版。
+这是 **0.1.0-preview.2 源码预览版**，不是开箱即用的桌面安装版。
 
 - 包含原项目的上传入口、批量控制器、持久任务队列、编排契约、渲染及辅助工具，不是重写的简化演示。
 - 本公开版本的离线测试只验证相应工程行为；不代表已用新影片跑通所有自动分析、选曲或听审，也不保证所有题材的配乐质量。
@@ -15,14 +15,25 @@
 
 ## 免费离线检查
 
-已在 Windows、Node.js 24.19.0 与 FFmpeg 9.0.1 环境运行离线测试：72 通过、0 失败、1 跳过。要求 Node.js 24.19.0+（24.x）、FFmpeg 和 ffprobe 在 PATH；该组 Node 测试不需要 npm 安装、账户、模型权重或 Python 包。
+已在 Windows、Node.js 24.19.0 与 FFmpeg 9.0.1 环境运行离线测试：87 通过、0 失败、1 跳过，共 88 项。要求 Node.js 24.19.0+（24.x）、FFmpeg 和 ffprobe 在 PATH；该组 Node 测试不需要 npm 安装、账户、模型权重或 Python 包。
 
 ```sh
 git clone https://github.com/a18329069309-commits/w-auto-score.git
 cd w-auto-score
 node tools/check-public.mjs
+node tools/doctor.mjs
 node tools/test-offline.mjs
 ```
+
+## 第一次运行：免费离线演示
+
+```sh
+node tools/demo-offline.mjs
+```
+
+该命令在项目 `.muse/` 下新建独立输出目录，生成两段合成短片、测试音源、实际渲染分轨和可播放预览。不需要账户、Python、曲库或模型服务；也不自动安装或下载依赖。仅演示固定编排的渲染与批次处理，不分析新影片剧情、不自动选曲、不执行听审，不是完整自动模式的通过证明。单片演示可加 `--episodes 1`。
+
+运行步骤、输出说明、常见失败和完整自动模式的配置边界见 [快速开始](docs/QUICKSTART.md) 与 [部署说明](docs/DEPLOYMENT.md)。
 
 测试包含合成音频与纯色视频的技术渲染，不使用商业影片或真实歌曲。运行器把临时文件放在项目 `.muse/`，拦截 Node 的 fetch、TCP、HTTP/TLS 接口；这不是操作系统禁网沙箱，也不覆盖所有外部进程。所选用例不提交模型请求。详细范围和实际执行结果见 [验证记录](docs/VALIDATION.md)。
 

@@ -1,6 +1,6 @@
 # 贡献指南
 
-先运行 `node tools/check-public.mjs` 与 `node tools/test-offline.mjs`。提交问题时说明系统、Node/FFmpeg 版本、最小合成输入、命令、预期结果及实际结果。
+先运行 `node tools/doctor.mjs`、`node tools/check-public.mjs` 与 `node tools/test-offline.mjs`。首次使用可按 [快速开始](docs/QUICKSTART.md) 运行固定编排离线演示。提交问题时说明系统、Node/FFmpeg 版本、最小合成输入、命令、预期结果及实际结果；公开报告前删去本机路径和账户信息，不上传完整私人配置或原始工作日志。
 
 请优先提交针对单一问题的小补丁，并添加离线回归测试。不要为了通过测试删除素材身份、预算、资格、源窗或听审检查。测试替身不能被登记为真实模型结果。
 

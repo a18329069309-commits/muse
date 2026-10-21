@@ -6,8 +6,8 @@
   "files": [
     {
       "path": ".github/workflows/offline.yml",
-      "public_sha256": "c9e332a490d7c93408d4509ae034c52bbf1ab1afeaa6516fc42602eda63dec55",
-      "public_bytes": 859,
+      "public_sha256": "cc02e6871174011c9d07f4b5b1d580ad53734baba60e80ddd3c589a55ae71410",
+      "public_bytes": 965,
       "origin": "public-packaging"
     },
     {
@@ -17,27 +17,39 @@
       "origin": "public-packaging"
     },
     {
+      "path": "CHANGELOG.md",
+      "public_sha256": "32d5b2ce979741da1885ca9962c8807a3bbc3a33c6084fc48c50627dfd3d109a",
+      "public_bytes": 939,
+      "origin": "public-packaging"
+    },
+    {
       "path": "CONTRIBUTING.md",
-      "public_sha256": "4eacf8da9ac26b998b074f00dfc1b5e265246ea498b35760e53d8d5e72e1aff8",
-      "public_bytes": 775,
+      "public_sha256": "8199c0f89dc3789f811a706b8d98e17fe6f721c92f9aef3e2395c1eaef54d8a4",
+      "public_bytes": 990,
       "origin": "public-packaging"
     },
     {
       "path": "docs/DEPLOYMENT.md",
-      "public_sha256": "6bd1a80c5f3baef2f7e73f45865053ec1e28275510c9fac66fc4367c8e7ea290",
-      "public_bytes": 2403,
+      "public_sha256": "7651da8784eb2e7986c3ee8a16d70341978edfb3d2a9cabb4ca065839f094e51",
+      "public_bytes": 5020,
+      "origin": "public-packaging"
+    },
+    {
+      "path": "docs/QUICKSTART.md",
+      "public_sha256": "735389ea8035c8491a7ff73297533cf7143e800184f0dd4ec4af33ff27e00579",
+      "public_bytes": 5233,
       "origin": "public-packaging"
     },
     {
       "path": "docs/ROADMAP.md",
-      "public_sha256": "f6748c3c41092b14e8d4fca815bbd558aa0a51d9abee749172cec08c3bce4c92",
-      "public_bytes": 712,
+      "public_sha256": "ff88db8c5440591d89e4a90f8f646d61afb2c0b7a4027da3ce29ec894eba72fd",
+      "public_bytes": 961,
       "origin": "public-packaging"
     },
     {
       "path": "docs/VALIDATION.md",
-      "public_sha256": "86af1b78a8de1bd2f525dcb548430ef34b4206c55cb0676fd7eb9622431bfd22",
-      "public_bytes": 2910,
+      "public_sha256": "92c0411fc01773fc432a40d20666109c15d394b3406d694b24e0ca889d596f57",
+      "public_bytes": 5455,
       "origin": "public-packaging"
     },
     {
@@ -48,14 +60,14 @@
     },
     {
       "path": "package.json",
-      "public_sha256": "dfc3f2baa525987c9c5bd6881e8d7dc03c74be85d97fa1b8cd2e8acd9a234aa7",
-      "public_bytes": 518,
+      "public_sha256": "1470279516c0ff33dd79d3afbd992f015caf88387681e81332d9710cf0082dbe",
+      "public_bytes": 600,
       "origin": "public-packaging"
     },
     {
       "path": "README.md",
-      "public_sha256": "907c4a2ed709632d7cc2b170fb39f6f9409309e56f62326c220cb6298e21ac10",
-      "public_bytes": 4084,
+      "public_sha256": "b8edaa4710b030c9c7c77315f9797eb52c69ced656a080f13ce15382cffc0328",
+      "public_bytes": 4776,
       "origin": "public-packaging"
     },
     {
@@ -2617,6 +2629,18 @@
       "origin": "public-packaging"
     },
     {
+      "path": "tests/test_demo_offline.mjs",
+      "public_sha256": "0964308a3308f6c1e9c93e5548f72cb80853764e87f2fde7dea0a5c295ebe4b3",
+      "public_bytes": 11585,
+      "origin": "public-packaging"
+    },
+    {
+      "path": "tests/test_doctor.mjs",
+      "public_sha256": "cfe89502b18dcf274909f7eefd210e13bdf999e0908ba1b898ffaf5d5d23153b",
+      "public_bytes": 10620,
+      "origin": "public-packaging"
+    },
+    {
       "path": "tests/test_episode_task_queue.mjs",
       "source_sha256": "7a1348ebe5541f5a1d12d4436ea9fcd5da0547af959ae9e6e2f209ac3ab34865",
       "bytes": 29983,
@@ -2675,6 +2699,24 @@
       "origin": "public-packaging"
     },
     {
+      "path": "tools/demo-engine.mjs",
+      "public_sha256": "8959a5ff3477f4a204ee94cad30cc39defced94f69e78ee10ef60be9459539b5",
+      "public_bytes": 15644,
+      "origin": "public-packaging"
+    },
+    {
+      "path": "tools/demo-offline.mjs",
+      "public_sha256": "fa3e231781f62b18d0460c79fc130ac8661df92e265ccec8bd2d592685968f0d",
+      "public_bytes": 6001,
+      "origin": "public-packaging"
+    },
+    {
+      "path": "tools/doctor.mjs",
+      "public_sha256": "73d718023cf126c2f25c7d819da66ae19e9b5b833141285e00e3be4f4979810a",
+      "public_bytes": 10101,
+      "origin": "public-packaging"
+    },
+    {
       "path": "tools/no-network.mjs",
       "public_sha256": "47b007548dc8b1c9f067ec27671c78795ff547d80bc7097f488f9649933ddc88",
       "public_bytes": 459,
@@ -2682,8 +2724,8 @@
     },
     {
       "path": "tools/test-offline.mjs",
-      "public_sha256": "8d9d5d1777a35c29a50f071dde8284f76f44bb7cefb9f0f033b777e6516929fb",
-      "public_bytes": 2192,
+      "public_sha256": "344061ffa800e36cbb49cb532fd56859ce3a39333f25741559671e0f74c373dc",
+      "public_bytes": 2278,
       "origin": "public-packaging"
     }
   ],
@@ -2699,7 +2741,7 @@
     "caches",
     "account settings"
   ],
-  "finalized_at": "2026-10-21T18:24:53.219Z",
+  "finalized_at": "2026-10-21T18:47:15.700Z",
   "license": "MIT",
   "note": "source_sha256 and bytes describe the original exported source; public_sha256 and public_bytes describe the public file. Manifest excludes itself and local test artifacts."
 }

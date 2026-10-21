@@ -24,5 +24,7 @@ jobs:
           ffprobe -version
       - name: Check public files and JavaScript dependency paths
         run: node tools/check-public.mjs
+      - name: Check offline demo runtime without model services
+        run: node tools/doctor.mjs --json
       - name: Run synthetic offline tests without model services
         run: node tools/test-offline.mjs
