@@ -48,14 +48,14 @@
     },
     {
       "path": "package.json",
-      "public_sha256": "8df834932e4c687f1a3c9c661bb4d6eea5104f1c68c135f0970194ff9cbb488e",
-      "public_bytes": 490,
+      "public_sha256": "cc065e06fa64654ddf691c2de6909d54fcbff10505424a6dd99e43c37ed692e3",
+      "public_bytes": 510,
       "origin": "public-packaging"
     },
     {
       "path": "README.md",
-      "public_sha256": "3083a98ae0b1951e632c40bd25652db39779551e62a1ebe998bd789f7b12291a",
-      "public_bytes": 4057,
+      "public_sha256": "27d155668b6385d1ef62544dce8069c1c61503696a24147fe7275108481af534",
+      "public_bytes": 4089,
       "origin": "public-packaging"
     },
     {
@@ -2664,8 +2664,8 @@
     },
     {
       "path": "THIRD_PARTY_NOTICES.md",
-      "public_sha256": "6e4d642939e7d665f9b7239f75a471ffe0cb3c290d30dd527194132d753fa51d",
-      "public_bytes": 1404,
+      "public_sha256": "f2b718adc05648ccea90ee104ac66cfbad649c8f6c72a88c0729ad058966dd14",
+      "public_bytes": 1420,
       "origin": "public-packaging"
     },
     {
@@ -2699,7 +2699,7 @@
     "caches",
     "account settings"
   ],
-  "finalized_at": "2026-10-21T17:11:31.909Z",
+  "finalized_at": "2026-10-21T17:38:53.756Z",
   "license": "MIT",
   "note": "source_sha256 and bytes describe the original exported source; public_sha256 and public_bytes describe the public file. Manifest excludes itself and local test artifacts."
 }

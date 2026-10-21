@@ -1,4 +1,4 @@
-# Muse · 短剧自动配乐
+# W自动配乐
 
 作者与维护者：**汪小昇** · [GitHub](https://github.com/a18329069309-commits)
 
@@ -18,8 +18,8 @@
 已在 Windows、Node.js 24.19.0 与 FFmpeg 9.0.1 环境运行离线测试：72 通过、0 失败、1 跳过。要求 Node.js 24.19.0+（24.x）、FFmpeg 和 ffprobe 在 PATH；该组 Node 测试不需要 npm 安装、账户、模型权重或 Python 包。
 
 ```sh
-git clone https://github.com/a18329069309-commits/muse.git
-cd muse
+git clone https://github.com/a18329069309-commits/muse.git w-auto-score
+cd w-auto-score
 node tools/check-public.mjs
 node tools/test-offline.mjs
 ```
@@ -51,4 +51,4 @@ node tools/test-offline.mjs
 
 ## English summary
 
-Muse is an experimental short-drama scoring pipeline maintained by 汪小昇. It connects story-aware material selection, music/SFX editing, durable batch jobs and aligned stem rendering. This is a source preview, not a turnkey desktop app or a claim of universally validated music quality. Offline tests use synthetic media and do not call model services. Full automatic scoring requires separately configured runtimes, properly licensed assets and real evidence bindings; those private resources are not distributed here.
+W Auto Score (W自动配乐) is an experimental short-drama scoring pipeline maintained by 汪小昇. It connects story-aware material selection, music/SFX editing, durable batch jobs and aligned stem rendering. This is a source preview, not a turnkey desktop app or a claim of universally validated music quality. Offline tests use synthetic media and do not call model services. Full automatic scoring requires separately configured runtimes, properly licensed assets and real evidence bindings; those private resources are not distributed here.

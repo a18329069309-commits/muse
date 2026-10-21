@@ -1,8 +1,8 @@
 {
-  "name": "muse-short-drama-sound",
+  "name": "w-auto-score",
   "version": "0.1.0-preview.1",
   "private": true,
-  "description": "Experimental story-aware short-drama scoring and aligned audio rendering",
+  "description": "W自动配乐 / W Auto Score: experimental story-aware short-drama scoring and aligned audio rendering",
   "author": "汪小昇",
   "license": "MIT",
   "type": "module",
