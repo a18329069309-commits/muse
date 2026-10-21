@@ -18,7 +18,7 @@
 已在 Windows、Node.js 24.19.0 与 FFmpeg 9.0.1 环境运行离线测试：72 通过、0 失败、1 跳过。要求 Node.js 24.19.0+（24.x）、FFmpeg 和 ffprobe 在 PATH；该组 Node 测试不需要 npm 安装、账户、模型权重或 Python 包。
 
 ```sh
-git clone https://github.com/a18329069309-commits/muse.git w-auto-score
+git clone https://github.com/a18329069309-commits/w-auto-score.git
 cd w-auto-score
 node tools/check-public.mjs
 node tools/test-offline.mjs

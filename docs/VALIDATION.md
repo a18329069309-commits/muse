@@ -14,6 +14,6 @@
 
 6 个文件覆盖持久批处理队列、音乐弧线、音频渲染、音乐编辑动作契约、声音编辑决策契约，以及非方形像素抽帧。测试使用合成输入与替身，不调用真实模型。复现命令：`node tools/test-offline.mjs`；日志和机器结果生成于被 Git 忽略的 `.muse/`。
 
-首次 [Ubuntu CI](https://github.com/a18329069309-commits/muse/actions/runs/39640636388) 为 70 通过、1 失败、1 跳过：FFmpeg 6.1.1 缺少 `scale:reset_sar` 参数。Windows 的 FFmpeg 9.0.1 支持该参数，说明本机通过并不能代表 Linux 兼容。修复按输入显示宽高比计算有界尺寸并用 `setsar=1` 输出方形像素；保留原抽帧选择和 PTS，不删除或跳过失败的真实 PCM 用例。新增 5 组合成画面检验横竖屏、非方形像素、1280 边界、帧时间与时长。表达式依据 [FFmpeg 6.1 官方 scale 文档](https://github.com/FFmpeg/FFmpeg/blob/n6.1/doc/filters.texi)；Linux 修复后的结果以对应 Actions 实际状态为准，不提前计为通过。
+首次 [Ubuntu CI](https://github.com/a18329069309-commits/w-auto-score/actions/runs/39640636388) 为 70 通过、1 失败、1 跳过：FFmpeg 6.1.1 缺少 `scale:reset_sar` 参数。Windows 的 FFmpeg 9.0.1 支持该参数，说明本机通过并不能代表 Linux 兼容。修复按输入显示宽高比计算有界尺寸并用 `setsar=1` 输出方形像素；保留原抽帧选择和 PTS，不删除或跳过失败的真实 PCM 用例。新增 5 组合成画面检验横竖屏、非方形像素、1280 边界、帧时间与时长。表达式依据 [FFmpeg 6.1 官方 scale 文档](https://github.com/FFmpeg/FFmpeg/blob/n6.1/doc/filters.texi)。[修复后 Ubuntu CI](https://github.com/a18329069309-commits/w-auto-score/actions/runs/39641592037) 已实际完成：72 通过、0 失败、1 跳过，所有工作流步骤成功；[品牌更新后的 CI](https://github.com/a18329069309-commits/w-auto-score/actions/runs/39645901096) 也复现了同样结果。
 
 尚未验证：公开素材的新片自动分析、真实选曲及听审、跨机器完整部署、全部可选 Python/模型路线、桌面安装。离线技术通过不等于听感通过。

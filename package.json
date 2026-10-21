@@ -11,5 +11,5 @@
     "test": "node tools/test-offline.mjs",
     "check": "node tools/check-public.mjs"
   },
-  "repository": { "type": "git", "url": "https://github.com/a18329069309-commits/muse.git" }
+  "repository": { "type": "git", "url": "https://github.com/a18329069309-commits/w-auto-score.git" }
 }

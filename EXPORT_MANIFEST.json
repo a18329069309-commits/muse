@@ -36,8 +36,8 @@
     },
     {
       "path": "docs/VALIDATION.md",
-      "public_sha256": "60cc4c6191a083445009ee5f86c0c0ad9bbdebaff4f032704563512f26b0ffd2",
-      "public_bytes": 2676,
+      "public_sha256": "86af1b78a8de1bd2f525dcb548430ef34b4206c55cb0676fd7eb9622431bfd22",
+      "public_bytes": 2910,
       "origin": "public-packaging"
     },
     {
@@ -48,14 +48,14 @@
     },
     {
       "path": "package.json",
-      "public_sha256": "cc065e06fa64654ddf691c2de6909d54fcbff10505424a6dd99e43c37ed692e3",
-      "public_bytes": 510,
+      "public_sha256": "dfc3f2baa525987c9c5bd6881e8d7dc03c74be85d97fa1b8cd2e8acd9a234aa7",
+      "public_bytes": 518,
       "origin": "public-packaging"
     },
     {
       "path": "README.md",
-      "public_sha256": "27d155668b6385d1ef62544dce8069c1c61503696a24147fe7275108481af534",
-      "public_bytes": 4089,
+      "public_sha256": "907c4a2ed709632d7cc2b170fb39f6f9409309e56f62326c220cb6298e21ac10",
+      "public_bytes": 4084,
       "origin": "public-packaging"
     },
     {
@@ -2699,7 +2699,7 @@
     "caches",
     "account settings"
   ],
-  "finalized_at": "2026-10-21T17:38:53.756Z",
+  "finalized_at": "2026-10-21T18:24:53.219Z",
   "license": "MIT",
   "note": "source_sha256 and bytes describe the original exported source; public_sha256 and public_bytes describe the public file. Manifest excludes itself and local test artifacts."
 }
