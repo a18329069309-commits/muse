@@ -6,8 +6,8 @@
   "files": [
     {
       "path": ".github/workflows/offline.yml",
-      "public_sha256": "cc02e6871174011c9d07f4b5b1d580ad53734baba60e80ddd3c589a55ae71410",
-      "public_bytes": 965,
+      "public_sha256": "f1bc05fc5e3ae92f3f0f30215e0578b5c2f440885323876c7c4a8bebbac4e582",
+      "public_bytes": 1025,
       "origin": "public-packaging"
     },
     {
@@ -18,8 +18,8 @@
     },
     {
       "path": "CHANGELOG.md",
-      "public_sha256": "32d5b2ce979741da1885ca9962c8807a3bbc3a33c6084fc48c50627dfd3d109a",
-      "public_bytes": 939,
+      "public_sha256": "772c1e8f72e358d72aa5bf27d847246872b7d1545c55da1eb21c2870a510dd17",
+      "public_bytes": 1795,
       "origin": "public-packaging"
     },
     {
@@ -29,9 +29,15 @@
       "origin": "public-packaging"
     },
     {
+      "path": "docs/AUDIO_REVIEW_CONTRACT.md",
+      "public_sha256": "2b7ba143fedadd88a81e6069aa312206cc905b210882ec0b0ffa63eec94d5094",
+      "public_bytes": 5196,
+      "origin": "public-packaging"
+    },
+    {
       "path": "docs/DEPLOYMENT.md",
-      "public_sha256": "7651da8784eb2e7986c3ee8a16d70341978edfb3d2a9cabb4ca065839f094e51",
-      "public_bytes": 5020,
+      "public_sha256": "11023e2a18a2798d8ce4e419fd3bc3c2de2ec3f898bcb79862eaf5742d58f53a",
+      "public_bytes": 5882,
       "origin": "public-packaging"
     },
     {
@@ -42,14 +48,14 @@
     },
     {
       "path": "docs/ROADMAP.md",
-      "public_sha256": "ff88db8c5440591d89e4a90f8f646d61afb2c0b7a4027da3ce29ec894eba72fd",
-      "public_bytes": 961,
+      "public_sha256": "208b9650f13e762efeeaba11b0c437f71f71057ee941e45e94b291cad1c75493",
+      "public_bytes": 1067,
       "origin": "public-packaging"
     },
     {
       "path": "docs/VALIDATION.md",
-      "public_sha256": "92c0411fc01773fc432a40d20666109c15d394b3406d694b24e0ca889d596f57",
-      "public_bytes": 5455,
+      "public_sha256": "e3be80086259149c43e5d45b8ce86de1630d3a41c0ae9ac90471e55c97fe60a9",
+      "public_bytes": 8931,
       "origin": "public-packaging"
     },
     {
@@ -60,14 +66,14 @@
     },
     {
       "path": "package.json",
-      "public_sha256": "1470279516c0ff33dd79d3afbd992f015caf88387681e81332d9710cf0082dbe",
+      "public_sha256": "93eecaf123a1d2cfdf23dc0e5ae0320357e5362e1d48786531ba5d9af59b53f5",
       "public_bytes": 600,
       "origin": "public-packaging"
     },
     {
       "path": "README.md",
-      "public_sha256": "b8edaa4710b030c9c7c77315f9797eb52c69ced656a080f13ce15382cffc0328",
-      "public_bytes": 4776,
+      "public_sha256": "72b8bb9d1b32e2efcf10656130ea4ec30cf9edcc1d11b606f0d22f8e5603e9ae",
+      "public_bytes": 5089,
       "origin": "public-packaging"
     },
     {
@@ -362,9 +368,9 @@
       "path": "scripts/audio_api.mjs",
       "source_sha256": "3b583ee962492f331a0434428ee65f2cdc08ecd93bc4d52a634401fde182e120",
       "bytes": 26334,
-      "public_sha256": "3b583ee962492f331a0434428ee65f2cdc08ecd93bc4d52a634401fde182e120",
-      "public_bytes": 26334,
-      "modified_for_public": false
+      "public_sha256": "3d7ceb4493ab898ceec7665dc1958a295965c699d396746a0f2c4b95b83cdde8",
+      "public_bytes": 49288,
+      "modified_for_public": true
     },
     {
       "path": "scripts/audit_music_pack_readiness.py",
@@ -386,9 +392,9 @@
       "path": "scripts/automatic_episode_controller.mjs",
       "source_sha256": "3cf5c01a1e7af87123f76e8ea64cebe213b11944d309a02fe99c240e0a3504aa",
       "bytes": 136169,
-      "public_sha256": "3cf5c01a1e7af87123f76e8ea64cebe213b11944d309a02fe99c240e0a3504aa",
-      "public_bytes": 136169,
-      "modified_for_public": false
+      "public_sha256": "53fe32cd2649ee25c3fdaa5b4df79d5df5ca544b858afaf9aecd0d5f3f104a94",
+      "public_bytes": 138018,
+      "modified_for_public": true
     },
     {
       "path": "scripts/automatic_stage_failure_evidence.mjs",
@@ -714,9 +720,9 @@
       "path": "scripts/compose_codex_episode.mjs",
       "source_sha256": "6c36871fef6bcc9dbe33595c1face22509475b9a9cb018de2ed3f3d880a19d4f",
       "bytes": 85103,
-      "public_sha256": "6c36871fef6bcc9dbe33595c1face22509475b9a9cb018de2ed3f3d880a19d4f",
-      "public_bytes": 85103,
-      "modified_for_public": false
+      "public_sha256": "2ce913f1c057b7672b2df7f570423612e9ad5d11b8392500678b4e91a9426d18",
+      "public_bytes": 85163,
+      "modified_for_public": true
     },
     {
       "path": "scripts/compose_episode.mjs",
@@ -818,9 +824,9 @@
       "path": "scripts/create_independent_trial_deployment.mjs",
       "source_sha256": "156b3333cf84f2f097224a52a9f3d3d0049a33b84929971f464ad9d058a4c8d8",
       "bytes": 10728,
-      "public_sha256": "156b3333cf84f2f097224a52a9f3d3d0049a33b84929971f464ad9d058a4c8d8",
-      "public_bytes": 10728,
-      "modified_for_public": false
+      "public_sha256": "b60bd8a94bbe85f5c8a87b9d8f6997bc23e43307b627af66a291590a42e2c244",
+      "public_bytes": 13105,
+      "modified_for_public": true
     },
     {
       "path": "scripts/cross_work_music_gate.mjs",
@@ -1522,9 +1528,9 @@
       "path": "scripts/post_render_quality_review.mjs",
       "source_sha256": "f43d81b2dea2ae726aa18b8f1072005bd930070cd515dc7b3cb38e275f5dc7ad",
       "bytes": 28642,
-      "public_sha256": "f43d81b2dea2ae726aa18b8f1072005bd930070cd515dc7b3cb38e275f5dc7ad",
-      "public_bytes": 28642,
-      "modified_for_public": false
+      "public_sha256": "d4011deea488341b8c2e7079a334ddf26105a70da70c37c1255f301a537eab25",
+      "public_bytes": 32568,
+      "modified_for_public": true
     },
     {
       "path": "scripts/post_render_sound_gaps.mjs",
@@ -1658,9 +1664,9 @@
       "path": "scripts/prepare_review_window.mjs",
       "source_sha256": "3c6649af47f869a23a817c3e0deb94c9928c63f561c02e2ae241c274310a727d",
       "bytes": 1905,
-      "public_sha256": "3c6649af47f869a23a817c3e0deb94c9928c63f561c02e2ae241c274310a727d",
-      "public_bytes": 1905,
-      "modified_for_public": false
+      "public_sha256": "2af8c738ee179cd41c226e6a62dcdd3764eb695b2e053d8968d9970770a1ffa0",
+      "public_bytes": 2442,
+      "modified_for_public": true
     },
     {
       "path": "scripts/prepare_sequential_identity_comparison.py",
@@ -2629,9 +2635,21 @@
       "origin": "public-packaging"
     },
     {
+      "path": "tests/test_api_audio_review.mjs",
+      "public_sha256": "180a3920735f55658112a3763fe36caa5a47abe33beedd8cf6cd36b0983d62da",
+      "public_bytes": 13870,
+      "origin": "public-packaging"
+    },
+    {
       "path": "tests/test_demo_offline.mjs",
       "public_sha256": "0964308a3308f6c1e9c93e5548f72cb80853764e87f2fde7dea0a5c295ebe4b3",
       "public_bytes": 11585,
+      "origin": "public-packaging"
+    },
+    {
+      "path": "tests/test_deployment_profile.mjs",
+      "public_sha256": "07a4426c8d09fdb3e8cdef05ce4b893196898d6e6dafa1cd32f6c25ad5e27485",
+      "public_bytes": 12841,
       "origin": "public-packaging"
     },
     {
@@ -2660,6 +2678,18 @@
       "path": "tests/test_prepare_episode.mjs",
       "public_sha256": "d2ec05a80494d42f7980d9b0fc81825c05af39f0e36f70fdd8fc71dce4882091",
       "public_bytes": 2097,
+      "origin": "public-packaging"
+    },
+    {
+      "path": "tests/test_prepare_review_window.mjs",
+      "public_sha256": "6880004234cf0305212ec9297237795de6bfbc0185b344d06becb47c4a364555",
+      "public_bytes": 5725,
+      "origin": "public-packaging"
+    },
+    {
+      "path": "tests/test_quality_review_budget.mjs",
+      "public_sha256": "0153198c9e3dbb81d9d50c16448e3fb19aa8a23243af395c8d5b713121073f69",
+      "public_bytes": 25277,
       "origin": "public-packaging"
     },
     {
@@ -2724,8 +2754,8 @@
     },
     {
       "path": "tools/test-offline.mjs",
-      "public_sha256": "344061ffa800e36cbb49cb532fd56859ce3a39333f25741559671e0f74c373dc",
-      "public_bytes": 2278,
+      "public_sha256": "a5745fb5c60b961cbd964ee140a0101d955fc0f7e2581b5598f94625241f6c2e",
+      "public_bytes": 2405,
       "origin": "public-packaging"
     }
   ],
@@ -2741,7 +2771,7 @@
     "caches",
     "account settings"
   ],
-  "finalized_at": "2026-10-21T18:47:15.700Z",
+  "finalized_at": "2026-10-21T19:29:06.044Z",
   "license": "MIT",
   "note": "source_sha256 and bytes describe the original exported source; public_sha256 and public_bytes describe the public file. Manifest excludes itself and local test artifacts."
 }

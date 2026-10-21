@@ -1,6 +1,6 @@
 import { execFile } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, readdir, stat, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { promisify } from 'node:util';
 import { hashFile } from './render_binding.mjs';
@@ -175,13 +175,198 @@ const redact = (text, environment) => {
   return text;
 };
 
+const reviewContract = 'exact_audio_picture_submission_v1';
+const sameJson = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+function finiteJson(value, seen = new Set()) {
+  if (typeof value === 'number' && !Number.isFinite(value) || ['function','symbol','bigint'].includes(typeof value))
+    throw Error('audio_review_json_value_invalid');
+  if (value && typeof value === 'object') {
+    if (seen.has(value)) throw Error('audio_review_json_value_invalid');
+    seen.add(value); for (const item of Object.values(value)) finiteJson(item, seen); seen.delete(value);
+  }
+}
+function strictBinding(value) {
+  if (!value || !path.isAbsolute(value.path ?? '') || !/^[a-f0-9]{64}$/.test(value.sha256 ?? ''))
+    throw Error('audio_review_absolute_hashed_binding_required');
+  return value;
+}
+const positiveTimeout = value => {
+  if (!Number.isSafeInteger(value) || value < 1 || value > 2147483647) throw Error('audio_review_timeout_invalid');
+  return value;
+};
+function reviewOptions(options = {}) {
+  const {purpose, frames = [], video, context = null, processing = {type: 'static', fps: 1}, resolution = 'low'} = options;
+  if (purpose !== 'mix' || !Array.isArray(frames) || frames.length || !video?.path || !video.sha256
+    || !sameJson(processing, {type: 'static', fps: 1}) || resolution !== 'low'
+    || Object.keys(options).some(key => !['purpose','frames','video','context','processing','resolution','prepared_request','timeoutMs'].includes(key)))
+    throw Error('audio_review_static_mix_contract_required');
+  strictBinding(video); finiteJson({context, video});
+  return JSON.parse(JSON.stringify({purpose, frames, video: {...video, path: path.resolve(video.path)}, context, processing, resolution}));
+}
+function reviewJob(job) {
+  if (!job || !path.isAbsolute(job.path ?? '') || !/^[a-f0-9]{64}$/.test(job.source_sha256 ?? ''))
+    throw Error('audio_review_source_identity_required');
+  finiteJson(job);
+  if (!Array.isArray(job.source_range) || job.source_range.length !== 2 || !job.source_range.every(Number.isFinite)
+    || job.source_range[0] < 0 || job.source_range[1] <= job.source_range[0] || job.source_range[1] - job.source_range[0] > 180)
+    throw Error('bounded_api_audio_window_required');
+  return JSON.parse(JSON.stringify({...job, path: path.resolve(job.path)}));
+}
+function reviewBackend(backend) {
+  if (!audioBackendMatches(backend, DEFAULT_AUDIO_BACKEND)) throw Error('audio_review_model_not_registered');
+  return resolveAudioBackend(backend);
+}
+function mixPrompt(context) {
+  return 'Describe only this actual audio and synchronized video. Report actual instruments, pulse and development; '
+    + 'distinguish sung words, speech and wordless voice. Transcribe only short words clearly heard; uncertainty is allowed. '
+    + 'All times are relative to the submitted clip. Do not invent words in silence or instrumental music. '
+    + 'Check narrative fit, audible accents, dialogue masking and music transitions. '
+    + `Task context for picture review only: ${JSON.stringify(context)}`;
+}
+async function reviewMedia(video, duration) {
+  const info = await stat(video.path);
+  if (!info.isFile() || info.size < 1 || info.size > 14 * 1024 * 1024) throw Error('audio_review_inline_video_size_invalid');
+  const probe = JSON.parse((await execute('ffprobe', ['-v','error','-show_streams','-show_format','-of','json',video.path],
+    {windowsHide: true, timeout: 10000, maxBuffer: 4 * 1024 * 1024})).stdout);
+  const picture = probe.streams?.find(row => row.codec_type === 'video'), sound = probe.streams?.find(row => row.codec_type === 'audio');
+  const mediaDuration = Number(probe.format?.duration), rate = String(picture?.avg_frame_rate ?? '').split('/').map(Number);
+  const frameSeconds = rate[1] / rate[0], pictureDuration = Number(picture?.duration), audioDuration = Number(sound?.duration);
+  const sampleRate = Number(sound?.sample_rate), audioTolerance = 1024 / sampleRate + 1 / 16000;
+  if (!picture || !sound || !Number.isFinite(mediaDuration) || mediaDuration <= 0
+    || !Number.isFinite(frameSeconds) || frameSeconds <= 0 || frameSeconds > 1 || !Number.isFinite(sampleRate) || sampleRate <= 0
+    || ![picture.start_time, sound.start_time].every(value => value !== undefined && Number.isFinite(Number(value)) && Math.abs(Number(value)) <= .002)
+    || ![pictureDuration,audioDuration].every(value => Number.isFinite(value) && value > 0)
+    || Math.abs(pictureDuration - duration) > frameSeconds + 1 / 16000
+    || Math.abs(audioDuration - duration) > audioTolerance
+    || Math.abs(mediaDuration - duration) > Math.max(frameSeconds, audioTolerance) + .002)
+    throw Error('audio_review_synchronized_media_duration_invalid');
+  return mediaDuration;
+}
+function reviewInputBudget(payload, duration, mediaDuration, identity) {
+  const textOnly = structuredClone(payload); for (const item of textOnly.input) delete item.data;
+  const components = {submitted_text_tokens: Math.ceil(Buffer.byteLength(JSON.stringify(textOnly)) / 3),
+    wrapper_allowance_tokens: 512, video_tokens: Math.ceil(Math.max(duration, mediaDuration) * 300),
+    audio_tokens: Math.ceil(identity.samples / 16000 * 32), video_audio_tokens: Math.ceil(mediaDuration * 32)};
+  return {revision: 'static-mix-audio-picture-planning-v1', components,
+    submitted_input_tokens: Object.values(components).reduce((sum, count) => sum + count, 0),
+    estimate_is_provider_usage: false, guaranteed_provider_token_ceiling: false,
+    excludes_output_schema: false, includes_video_audio: true, base64_counted_as_text: false};
+}
+async function verifyPreparedAudioIdentity(identity, job) {
+  const samples = Math.round(job.source_range[1] * 16000) - Math.round(job.source_range[0] * 16000);
+  if ((await stat(identity.input_audio.path)).size !== 44 + samples * 4) throw Error('audio_review_prepared_audio_identity_invalid');
+  const bytes = await readFile(identity.input_audio.path);
+  if (bytes.length !== 44 + samples * 4 || bytes.toString('ascii',0,4) !== 'RIFF' || bytes.readUInt32LE(4) !== bytes.length - 8
+    || bytes.toString('ascii',8,16) !== 'WAVEfmt ' || bytes.readUInt32LE(16) !== 16 || bytes.readUInt16LE(20) !== 3
+    || bytes.readUInt16LE(22) !== 1 || bytes.readUInt32LE(24) !== 16000 || bytes.readUInt32LE(28) !== 64000
+    || bytes.readUInt16LE(32) !== 4 || bytes.readUInt16LE(34) !== 32 || bytes.toString('ascii',36,40) !== 'data'
+    || bytes.readUInt32LE(40) !== samples * 4 || samples < 1 || shaBytes(bytes) !== identity.input_audio.sha256
+    || identity.samples !== samples || identity.input_audio.samples !== samples
+    || identity.sample_rate_hz !== 16000 || identity.input_audio.sample_rate_hz !== 16000
+    || identity.pcm_sha256 !== shaBytes(bytes.subarray(44)) || identity.input_audio.pcm_sha256 !== identity.pcm_sha256
+    || identity.source_path !== path.resolve(job.path) || identity.source_sha256 !== job.source_sha256
+    || identity.input_audio.source_sha256 !== job.source_sha256 || !sameJson(identity.source_range, job.source_range)
+    || !sameJson(identity.input_audio.source_range, job.source_range)
+    || identity.segment_id !== job.segment_id || identity.asset_id !== job.asset_id)
+    throw Error('audio_review_prepared_audio_identity_invalid');
+  for (let offset = 44; offset < bytes.length; offset += 4) if (!Number.isFinite(bytes.readFloatLE(offset)))
+    throw Error('audio_review_prepared_audio_identity_invalid');
+}
+async function checkedPrepared(session, job, out, options, prepared) {
+  strictBinding(prepared?.preparation);
+  if (path.resolve(prepared.preparation.path) !== path.join(out, 'prepared-request.json'))
+    throw Error('audio_review_prepared_request_required');
+  await verifyEvidenceBindings(prepared.preparation);
+  const value = await readJson(prepared.preparation.path);
+  strictBinding(value.request_payload); strictBinding(value.identity?.input_audio); strictBinding(value.options?.video);
+  finiteJson(value.input_budget);
+  if (!Number.isSafeInteger(value.input_budget?.submitted_input_tokens) || value.input_budget.submitted_input_tokens < 1
+    || !value.input_budget.components || Object.values(value.input_budget.components).some(count => !Number.isSafeInteger(count) || count < 0)
+    || Object.values(value.input_budget.components).reduce((sum, count) => sum + count, 0) !== value.input_budget.submitted_input_tokens
+    || value.input_budget.estimate_is_provider_usage !== false || value.input_budget.guaranteed_provider_token_ceiling !== false)
+    throw Error('audio_review_input_budget_binding_invalid');
+  const expected = {schema_version: 1, contract: reviewContract, request_payload: value.request_payload,
+    request_body_sha256: value.request_body_sha256, input_budget: value.input_budget,
+    timeout_ms: value.timeout_ms, preparation: prepared.preparation};
+  if (!sameJson(prepared, expected) || value.contract !== reviewContract || value.schema_version !== 1
+    || !sameJson(value.job, reviewJob(job)) || !sameJson(value.options, reviewOptions(options))
+    || !sameJson(value.backend, reviewBackend(session.audioBackend))
+    || value.timeout_ms !== positiveTimeout(session.timeoutMs)
+    || path.resolve(value.identity?.input_audio?.path ?? '') !== path.join(out, 'input.wav')
+    || path.resolve(value.request_payload?.path ?? '') !== path.join(out, 'request-payload.json'))
+    throw Error('audio_review_prepared_identity_changed');
+  await verifyEvidenceBindings([value.request_payload, value.identity.input_audio, value.options.video]);
+  if (await hashFile(job.path) !== job.source_sha256) throw Error('audio_review_prepared_source_changed');
+  await verifyPreparedAudioIdentity(value.identity, job);
+  const payload = await readJson(value.request_payload.path), body = JSON.stringify(payload);
+  if (shaBytes(body) !== value.request_body_sha256) throw Error('audio_review_prepared_payload_changed');
+  const mediaDuration = await reviewMedia(value.options.video, job.source_range[1] - job.source_range[0]);
+  const inputs = payload.input, prompt = mixPrompt(value.options.context);
+  if (!Array.isArray(inputs) || inputs.length !== 3 || inputs[0].type !== 'text' || inputs[0].text !== prompt || value.prompt !== prompt
+    || inputs[1].type !== 'audio' || inputs[1].mime_type !== 'audio/wav' || typeof inputs[1].data !== 'string'
+    || shaBytes(Buffer.from(inputs[1].data, 'base64')) !== value.identity.input_audio.sha256
+    || inputs[2].type !== 'video' || inputs[2].mime_type !== 'video/mp4' || typeof inputs[2].data !== 'string'
+    || shaBytes(Buffer.from(inputs[2].data, 'base64')) !== value.options.video.sha256
+    || !sameJson(inputs[2].processing, {type:'static',fps:1}) || inputs[2].resolution !== 'low'
+    || !sameJson(payload.generation_config, {max_output_tokens:8192,thinking_level:'high'})
+    || !sameJson(payload.response_format, {type:'text',mime_type:'application/json',schema:audioSchema})
+    || payload.model !== value.backend.model_revision || payload.store !== false
+    || !sameJson(Object.keys(payload).sort(), ['generation_config','input','model','response_format','store'])
+    || !sameJson(value.input_budget, reviewInputBudget(payload, job.source_range[1] - job.source_range[0], mediaDuration, value.identity)))
+    throw Error('audio_review_prepared_contract_changed');
+  return {value, payload, body};
+}
+
 export class ApiSession {
   constructor({ budget, directory, environment = process.env, transport = fetch, timeoutMs = 120000, audioBackend }) {
     this.budget = budget; this.directory = path.resolve(directory); this.environment = environment;
     this.transport = transport; this.timeoutMs = timeoutMs; this.ledger = [];
     this.audioBackend = resolveAudioBackend(audioBackend);
   }
-  async post(provider, payload, stage, audioBackend = null) {
+  get audioReviewEvidenceContract() { return audioBackendMatches(this.audioBackend, DEFAULT_AUDIO_BACKEND) ? reviewContract : null; }
+  async prepareAudioReviewRequest(job, outputDirectory, options = {}) {
+    const out = path.resolve(outputDirectory), normalizedJob = reviewJob(job), normalizedOptions = reviewOptions(options);
+    const backend = reviewBackend(this.audioBackend), timeout_ms = positiveTimeout(this.timeoutMs);
+    const preparationFile = path.join(out, 'prepared-request.json');
+    try {
+      const files = await readdir(out);
+      if (!files.includes('prepared-request.json')) throw Error('audio_review_incomplete_preparation_requires_reconciliation');
+      const binding = {path: preparationFile, sha256: await hashFile(preparationFile)}, value = await readJson(preparationFile);
+      const prepared = {schema_version: 1, contract: reviewContract, request_payload: value.request_payload,
+        request_body_sha256: value.request_body_sha256, input_budget: value.input_budget,
+        timeout_ms: value.timeout_ms, preparation: binding};
+      await checkedPrepared(this, job, out, options, prepared); return prepared;
+    } catch (error) { if (error.code !== 'ENOENT') throw error; }
+    if (!sameJson(normalizedOptions.video.source_range, normalizedJob.source_range)
+      || await hashFile(normalizedOptions.video.path) !== normalizedOptions.video.sha256)
+      throw Error('synchronized_video_binding_invalid');
+    const duration = normalizedJob.source_range[1] - normalizedJob.source_range[0];
+    const mediaDuration = await reviewMedia(normalizedOptions.video, duration);
+    await mkdir(path.dirname(out), {recursive: true}); await mkdir(out);
+    const identity = await prepareApiAudio(normalizedJob, path.join(out, 'input.wav'));
+    const audioBytes = await readFile(identity.input_audio.path), videoBytes = await readFile(normalizedOptions.video.path);
+    if (shaBytes(audioBytes) !== identity.input_audio.sha256 || shaBytes(videoBytes) !== normalizedOptions.video.sha256)
+      throw Error('audio_review_media_changed_during_prepare');
+    const prompt = mixPrompt(normalizedOptions.context);
+    const payload = {model: backend.model_revision, store: false, input: [
+      {type: 'text', text: prompt}, {type: 'audio', mime_type: 'audio/wav', data: audioBytes.toString('base64')},
+      {type: 'video', mime_type: 'video/mp4', data: videoBytes.toString('base64'),
+        processing: normalizedOptions.processing, resolution: normalizedOptions.resolution}],
+      generation_config: {max_output_tokens: 8192, thinking_level: 'high'},
+      response_format: {type: 'text', mime_type: 'application/json', schema: audioSchema}};
+    const body = JSON.stringify(payload);
+    if (Buffer.byteLength(body) > 20 * 1024 * 1024) throw Error('gemini_inline_request_exceeds_20mb');
+    const input_budget = reviewInputBudget(payload, duration, mediaDuration, identity);
+    const request_payload = await saveJson(path.join(out, 'request-payload.json'), payload);
+    const request_body_sha256 = shaBytes(body);
+    const preparation = await saveJson(preparationFile, {schema_version: 1, contract: reviewContract,
+      job: normalizedJob, options: normalizedOptions, backend, identity, prompt, request_payload,
+      request_body_sha256, input_budget, timeout_ms});
+    const prepared = {schema_version: 1, contract: reviewContract, request_payload, request_body_sha256,
+      input_budget, timeout_ms, preparation};
+    await checkedPrepared(this, job, out, options, prepared); return prepared;
+  }
+  async post(provider, payload, stage, audioBackend = null, options = {}) {
     if (!['openai', 'gemini'].includes(provider)) throw new Error('unsupported_api_provider');
     if (audioBackend && (provider !== 'gemini' || resolveAudioBackend(audioBackend).protocol !== 'gemini_interactions'
       || payload.model !== resolveAudioBackend(audioBackend).model_revision))
@@ -194,23 +379,28 @@ export class ApiSession {
     if (this.ledger.length >= b.max_calls || reserved + b.per_call_cost_ceiling_usd > b.max_estimated_cost_usd + 1e-9) throw new Error('budget_exhausted');
     const key = provider === 'openai' ? this.environment.OPENAI_API_KEY : this.environment.GEMINI_API_KEY || this.environment.GOOGLE_API_KEY;
     if (!key?.trim()) throw new Error(`missing_${provider}_credential`);
-    const body = JSON.stringify(payload);
+    const timeoutMs = Math.min(positiveTimeout(this.timeoutMs), positiveTimeout(options.timeoutMs ?? this.timeoutMs));
+    const body = options.serializedBody ?? JSON.stringify(payload);
+    if (typeof body !== 'string' || body !== JSON.stringify(payload)) throw Error('request_serialization_binding_invalid');
     if (provider === 'gemini' && Buffer.byteLength(body) > 20 * 1024 * 1024) throw new Error('gemini_inline_request_exceeds_20mb');
     const ordinal = this.ledger.length + 1, row = { ordinal, provider, model: payload.model, stage,
-      cost_ceiling_usd: b.per_call_cost_ceiling_usd, request_body_sha256: shaBytes(body), status: 'submitted', usage: null,
+      cost_ceiling_usd: b.per_call_cost_ceiling_usd, request_body_sha256: shaBytes(body), status: 'submitted', usage: null, timeout_ms: timeoutMs,
       ...(audioBackend ? resolveAudioBackend(audioBackend) : {}) };
     this.ledger.push(row);
     await saveJson(path.join(this.directory, `${ordinal}-submission.json`), row);
-    const began = performance.now();
+    const began = performance.now(), controller = new AbortController(); let deadlineTimer, responseValue;
+    const deadline = new Promise((_resolve, reject) => {deadlineTimer = setTimeout(() => {
+      controller.abort(); reject(Error('provider_timeout'));
+    }, timeoutMs);});
     try {
-      const result = await this.transport(provider === 'openai' ? 'https://api.openai.com/v1/responses'
+      const result = await Promise.race([Promise.resolve().then(() => this.transport(provider === 'openai' ? 'https://api.openai.com/v1/responses'
         : 'https://generativelanguage.googleapis.com/v1beta/interactions', {
         method: 'POST', headers: { 'Content-Type': 'application/json',
           ...(provider === 'openai' ? { Authorization: `Bearer ${key}` } : { 'x-goog-api-key': key }) },
-        body, signal: AbortSignal.timeout(this.timeoutMs),
-      });
+        body, signal: controller.signal,
+      })), deadline]);
       if (!result.ok) throw new Error(`provider_http_${result.status}`);
-      const raw = JSON.parse(redact(JSON.stringify(await result.json()), this.environment));
+      const raw = JSON.parse(redact(JSON.stringify(await Promise.race([result.json(), deadline])), this.environment));
       const rawBinding = await saveJson(path.join(this.directory, `${ordinal}-response.json`), raw);
       row.response = rawBinding; row.request_id = raw.id; row.status = raw.status; row.usage = raw.usage ?? null;
       if (!raw.id || raw.status !== 'completed') throw new Error('provider_response_not_completed');
@@ -224,8 +414,9 @@ export class ApiSession {
       const value = JSON.parse(output);
       if (payload.text?.format?.schema) validateSchema(value, payload.text.format.schema);
       if (payload.response_format?.schema) validateSchema(value, payload.response_format.schema);
-      return { value, request_id: raw.id, model: raw.model || payload.model, finish_reason: 'complete', raw_response: rawBinding,
+      responseValue = { value, request_id: raw.id, model: raw.model || payload.model, finish_reason: 'complete', raw_response: rawBinding,
         raw_response_sha256: rawBinding.sha256, usage: row.usage,
+        provider, purpose: stage, request_body_sha256: row.request_body_sha256,
         ...(audioBackend ? resolveAudioBackend(audioBackend) : {}) };
     } catch (error) {
       row.status = error.message?.startsWith('provider_http_') ? 'provider_rejected'
@@ -233,9 +424,12 @@ export class ApiSession {
       // Do not retry a request whose external outcome is unknown or echo SDK/network errors.
       throw new Error(error.message === 'budget_exhausted' ? error.message : `${provider}_${row.status}`);
     } finally {
+      clearTimeout(deadlineTimer);
       row.elapsed_seconds = (performance.now() - began) / 1000;
-      await saveJson(path.join(this.directory, `${ordinal}-receipt.json`), row);
+      const receipt = await saveJson(path.join(this.directory, `${ordinal}-receipt.json`), row);
+      if (responseValue) responseValue.submission_receipt = receipt;
     }
+    return responseValue;
   }
   async director({ prompt, data, frames = [], schema = null, stage = 'director', effort = 'high' }) {
     const content = [{ type: 'input_text', text: JSON.stringify(data) }];
@@ -250,7 +444,9 @@ export class ApiSession {
       text: { format: schema ? { type: 'json_schema', name: stage.replace(/[^a-z0-9_]/gi, '_'), strict: true, schema }
         : { type: 'json_object' } } }, stage);
   }
-  async observeAudio(job, outputDirectory, { frames = [], video = null, purpose = 'candidate', context = null } = {}) {
+  async observeAudio(job, outputDirectory, options = {}) {
+    const { frames = [], video = null, purpose = 'candidate', context = null, prepared_request, timeoutMs } = options;
+    if (purpose === 'mix') return this.observePreparedAudio(job, outputDirectory, options);
     const out = path.resolve(outputDirectory); await mkdir(out, { recursive: true });
     const identity = await prepareApiAudio(job, path.join(out, 'input.wav'));
     const prompt = 'Describe only this actual audio. Names and desired genre are deliberately absent. '
@@ -282,7 +478,7 @@ export class ApiSession {
     }
     const response = await this.post('gemini', { model: this.audioBackend.model_revision, input,
       generation_config: { max_output_tokens: 8192, thinking_level: 'high' },
-      response_format: { type: 'text', mime_type: 'application/json', schema: purpose === 'words_candidate' ? audioWordsSchema : audioSchema } }, purpose, this.audioBackend);
+      response_format: { type: 'text', mime_type: 'application/json', schema: purpose === 'words_candidate' ? audioWordsSchema : audioSchema } }, purpose, this.audioBackend, {timeoutMs});
     await verifyEvidenceBindings([identity.input_audio, ...(video ? [video] : []), ...frames]);
     if (await hashFile(job.path) !== job.source_sha256) throw new Error('audio_source_changed_after_submission');
     const observation = response.value, duration = job.source_range[1] - job.source_range[0];
@@ -309,6 +505,83 @@ export class ApiSession {
       observation_prompt_sha256: shaBytes(prompt), purpose, ...(video ? { synchronized_video: video } : {}) };
     record.file = await saveJson(path.join(out, 'observation.json'), record);
     return record;
+  }
+  async observePreparedAudio(job, outputDirectory, options) {
+    const out = path.resolve(outputDirectory), prepared = options.prepared_request;
+    const {value, payload, body} = await checkedPrepared(this, job, out, options, prepared);
+    const timeoutMs = Math.min(positiveTimeout(this.timeoutMs), positiveTimeout(options.timeoutMs ?? prepared.timeout_ms));
+    const {identity} = value, video = value.options.video;
+    const files = await readdir(out);
+    if (files.includes('observation.json')) {
+      const file = {path: path.join(out, 'observation.json'), sha256: await hashFile(path.join(out, 'observation.json'))};
+      const stored = await readJson(file.path);
+      for (const ref of [stored.request_payload, stored.submission_receipt, stored.api_evidence, stored.preparation]) strictBinding(ref);
+      await verifyEvidenceBindings(stored);
+      const audit = await readJson(stored.api_evidence.path), receipt = await readJson(stored.submission_receipt.path);
+      strictBinding(audit.raw_response); await verifyEvidenceBindings([audit, receipt]);
+      const raw = await readJson(audit.raw_response.path);
+      const text = (raw.steps?.filter(row => row.type === 'model_output').flatMap(row => row.content ?? []) ?? raw.outputs ?? [])
+        .filter(row => ['text','output_text'].includes(row.type)).map(row => row.text).join('');
+      if (!sameJson(stored.request_payload, prepared.request_payload) || !sameJson(stored.preparation, prepared.preparation)
+        || !audioBackendMatches(stored, this.audioBackend) || !audioBackendMatches(audit, this.audioBackend)
+        || !audioBackendMatches(receipt, this.audioBackend)
+        || Object.entries(identity).some(([key, expected]) => !sameJson(stored[key], expected))
+        || stored.request_body_sha256 !== prepared.request_body_sha256 || !sameJson(stored.input_audio, identity.input_audio)
+        || !sameJson(stored.synchronized_video, video) || stored.source_sha256 !== job.source_sha256
+        || stored.source_video_sha256 !== (job.source_video_sha256 ?? null) || !sameJson(stored.source_range, job.source_range)
+        || stored.model !== this.audioBackend.model_revision || stored.purpose !== 'mix' || stored.actual_audio_processed !== true
+        || stored.completion_status !== 'complete' || stored.finish_reason !== 'complete'
+        || receipt.provider !== 'gemini' || receipt.stage !== 'mix' || receipt.status !== 'completed'
+        || receipt.request_id !== stored.request_id || receipt.model !== stored.model
+        || receipt.request_body_sha256 !== prepared.request_body_sha256 || !sameJson(receipt.response, audit.raw_response)
+        || audit.provider !== 'gemini' || audit.purpose !== 'mix' || audit.request_id !== stored.request_id
+        || audit.model !== stored.model || audit.request_body_sha256 !== prepared.request_body_sha256
+        || audit.audio_sha256 !== identity.input_audio.sha256 || audit.submitted_pcm_sha256 !== identity.pcm_sha256
+        || audit.source_sha256 !== job.source_sha256 || !sameJson(audit.source_window, job.source_range)
+        || audit.finish_reason !== 'complete' || !sameJson(audit.preparation, prepared.preparation)
+        || !sameJson(audit.request_payload, prepared.request_payload) || !sameJson(audit.submission_receipt, stored.submission_receipt)
+        || raw.id !== stored.request_id || raw.model !== stored.model || raw.status !== 'completed'
+        || (raw.steps ?? []).some(row => row.status && row.status !== 'completed')
+        || (raw.steps?.filter(row => row.type === 'model_output').flatMap(row => row.content ?? []) ?? raw.outputs ?? []).some(row => row.type === 'refusal')
+        || !text.trim() || !sameJson(JSON.parse(text), stored.observation)) throw Error('audio_review_cached_evidence_mismatch');
+      validateSchema(stored.observation, audioSchema);
+      const duration = job.source_range[1] - job.source_range[0];
+      if ([...stored.observation.words, ...stored.observation.issues].some(item => item.start_seconds < 0
+        || item.end_seconds <= item.start_seconds || item.end_seconds > duration + 1 / 16000)
+        || stored.observation.changes.some(item => item.time_seconds < 0 || item.time_seconds > duration))
+        throw Error('audio_review_cached_evidence_range_invalid');
+      await verifyEvidenceBindings(file); return {...stored, file};
+    }
+    if (files.includes('submission-pending.json')) throw Error('audio_review_pending_submission_requires_reconciliation');
+    await saveJson(path.join(out, 'submission-pending.json'), {schema_version: 1, contract: reviewContract,
+      request_payload: prepared.request_payload, preparation: prepared.preparation,
+      request_body_sha256: prepared.request_body_sha256, timeout_ms: timeoutMs,
+      status: 'outcome_requires_reconciliation_until_bound_observation_complete'});
+    const response = await this.post('gemini', payload, 'mix', this.audioBackend, {timeoutMs, serializedBody: body});
+    await checkedPrepared(this, job, out, options, prepared);
+    const observation = response.value, duration = job.source_range[1] - job.source_range[0];
+    for (const item of [...observation.words, ...observation.issues]) {
+      if (!(item.start_seconds >= 0 && item.end_seconds > item.start_seconds && item.end_seconds <= duration + 1 / 16000))
+        throw Error('audio_observation_time_out_of_range');
+    }
+    if (observation.changes.some(item => item.time_seconds < 0 || item.time_seconds > duration)) throw Error('audio_change_time_out_of_range');
+    const audit = await saveJson(path.join(out, 'api-evidence.json'), {schema_version: 1, ...response, value: undefined,
+      request_payload: prepared.request_payload, preparation: prepared.preparation,
+      audio_sha256: identity.input_audio.sha256, submitted_pcm_sha256: identity.pcm_sha256,
+      source_sha256: job.source_sha256, source_window: job.source_range});
+    const record = {schema_version: 1, ...identity, ...this.audioBackend, source_video_sha256: job.source_video_sha256 ?? null,
+      actual_audio_processed: true, model: response.model, request_id: response.request_id,
+      observation, raw_observation: observation.description, api_evidence: audit,
+      request_payload: prepared.request_payload, submission_receipt: response.submission_receipt,
+      preparation: prepared.preparation, request_body_sha256: prepared.request_body_sha256,
+      execution: {backend_kind: 'api', actual_audio_processed: true, model: response.model, request_id: response.request_id,
+        ...this.audioBackend, audio_sha256: identity.input_audio.sha256, submitted_pcm_sha256: identity.pcm_sha256,
+        request_body_sha256: prepared.request_body_sha256, source_window: job.source_range},
+      completion_status: 'complete', finish_reason: 'complete', qualified: false, scopes: [], selected: false,
+      artistic_approval: false, warnings: ['api_observation_not_artistic_approval'],
+      cache_key: prepared.request_body_sha256, cache_hit: false, observation_prompt_sha256: shaBytes(value.prompt),
+      purpose: 'mix', synchronized_video: video};
+    record.file = await saveJson(path.join(out, 'observation.json'), record); return record;
   }
 }
 

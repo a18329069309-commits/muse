@@ -1,5 +1,6 @@
 import path from 'node:path';
-import { readJson, saveJson, verifyEvidenceBindings } from './audio_api.mjs';
+import {lstat,mkdir} from 'node:fs/promises';
+import { readJson, saveJson, verifyEvidenceBindings, resolveAudioBackend, validateAudioQualification } from './audio_api.mjs';
 import { hashFile } from './render_binding.mjs';
 import { loadNativeEnvelopeCalibration } from './native_envelope_calibration.mjs';
 import { validateFinalMixMasterConfig } from './final_mix_master.mjs';
@@ -44,9 +45,36 @@ export async function createIndependentTrialDeployment({ directory, music_packs,
   ambient_library = null, independent_retriever = null, original_sound_reviews = [], runtime_profile,
   authorization_evidence, diagnostic_sample = null }) {
   if (!path.isAbsolute(directory) || !authorization_evidence?.trim()) throw Error('independent_deployment_scope_required');
+  try {
+    await lstat(directory);
+    throw Error('independent_deployment_new_directory_required');
+  } catch (error) {
+    if (error.code !== 'ENOENT') throw error;
+  }
   await verifyEvidenceBindings(music_packs);
   const publication = await readJson(music_packs.path), old = await readJson(runtime_profile);
   if (publication.kind !== 'independent_music_pack_publication') throw Error('independent_pack_publication_required');
+  if(old.quality_review_policy!==undefined
+    &&!['diagnostic_only','automatic_required','composite_research'].includes(old.quality_review_policy))
+    throw Error('independent_deployment_quality_review_policy_invalid');
+  if(old.quality_review_policy==='automatic_required'&&!old.quality_review_audio_backend)
+    throw Error('independent_deployment_audio_review_backend_required');
+  if(old.quality_review_audio_backend!==undefined)resolveAudioBackend(old.quality_review_audio_backend);
+  if((old.quality_review_policy==='automatic_required'||old.quality_review_qualification!==undefined)
+    &&(!path.isAbsolute(old.quality_review_qualification?.path??'')
+    ||!/^[a-f0-9]{64}$/.test(old.quality_review_qualification?.sha256??'')))
+    throw Error('independent_deployment_audio_review_qualification_required');
+  if(old.quality_review_qualification!==undefined){
+    if(!old.quality_review_audio_backend)throw Error('independent_deployment_audio_review_backend_required');
+    const qualification=await validateAudioQualification(old.quality_review_qualification,
+      resolveAudioBackend(old.quality_review_audio_backend),['audio_observation','music_candidate_judgment']);
+    if(!qualification.ready)throw Error('independent_deployment_audio_review_qualification_invalid');
+    if(old.quality_review_policy==='automatic_required'){
+      const version=(await readJson(qualification.binding.path)).schema_version;
+      if(!Number.isSafeInteger(version)||version<2)
+        throw Error('independent_deployment_schema2_audio_review_qualification_required');
+    }
+  }
   validateIndependentMusicComparisonPolicy(old.independent_music_comparison_policy);
   if(old.sfx_audibility_repair!==undefined)
     (await import('./sfx_audibility_repair.mjs')).validateSfxAudibilityRepairPolicy(old.sfx_audibility_repair);
@@ -82,7 +110,7 @@ export async function createIndependentTrialDeployment({ directory, music_packs,
       || !path.isAbsolute(independent_retriever.snapshot?.path ?? '')) throw Error('independent_deployment_resident_retriever_binding_required');
     await verifyEvidenceBindings(independent_retriever.snapshot);
   }
-  const authorization = await saveJson(path.join(directory, 'authorization.json'), {
+  const authorizationValue = {
     schema_version: 1, kind: 'direct_human_independent_music_pack_trial_authorization', status: 'authorized',
     scope: 'independent_pack_trial', output_root: directory,
     operations: ['compose_uploaded_episode', 'compose_episode', 'user_film_trial', 'analyze_target',
@@ -91,17 +119,18 @@ export async function createIndependentTrialDeployment({ directory, music_packs,
     production_approval: false, material_or_listening_approval: false,
     preserves_reference_source_policy: true, evidence: authorization_evidence,
     development_budget: { revision: 'generic-adaptation-v1', max_requests: 12, max_input_tokens: 16000, max_elapsed_ms: 1200000 },
-  });
+  };
   const runtimeKeys = ['python', 'contact_sheet_python', 'account_cli_slot_directory', 'codex_cli',
     'local_audio_python', 'local_audio_analysis', 'material_observer_kind', 'material_observation_execution',
     'assembly_contract_version','sound_query_contract_version','sfx_adoption_mode','music_action_contract_version',
-    'quality_review_policy','material_readiness_policy','final_mix_master','delivery_archive','render_decode_cache',
+    'quality_review_policy','quality_review_audio_backend','quality_review_qualification',
+    'material_readiness_policy','final_mix_master','delivery_archive','render_decode_cache',
     'independent_music_comparison_policy','sfx_audibility_repair','assembly_decision_contract_revision',
     'composite_review','review_input_limit_policy','trial_call_plan','trial_wall_clock_policy','assembly_source_capacity_revision',
     'assembly_gap_contract_revision','sfx_offline_repair_root','assembly_sfx_pool_contract_revision'];
   const profile = { schema_version: 1, mode: 'research', automatic_trial: true, direction_contract_version: 2,
     strategy: 'case_presets', material_strategy: 'independent_music_packs', music_packs,
-    source_policy: { kind: 'independent_pack_trial', authorization }, trial_review_policy: 'diagnostic_candidates',
+    source_policy: { kind: 'independent_pack_trial', authorization: null }, trial_review_policy: 'diagnostic_candidates',
     library: { db: publication.library.path, sha256: publication.library.sha256 }, craft_mode: 'fine',
     audience: 'auto', music_words_policy: 'prefer', visual_sampling_step: 6,
     trial_budget_revision: 'generic-adaptation-v1',
@@ -119,6 +148,13 @@ export async function createIndependentTrialDeployment({ directory, music_packs,
     delete profile.material_observation_execution;
   }else profile.material_observation_execution = { ...profile.material_observation_execution,
     directory: path.join(directory, 'material-observations') };
+  // Validate everything before any deployment/authorization file is created.
+  // Claim only a fresh leaf; a racing creator must never become an update target.
+  await mkdir(path.dirname(directory),{recursive:true});
+  try {await mkdir(directory);}
+  catch(error){if(error.code==='EEXIST')throw Error('independent_deployment_new_directory_required');throw error;}
+  const authorization=await saveJson(path.join(directory,'authorization.json'),authorizationValue);
+  profile.source_policy.authorization=authorization;
   const consumer = { strategy: profile.strategy, material_strategy: profile.material_strategy,
     music_packs, source_policy: profile.source_policy, trial_review_policy: profile.trial_review_policy, library: profile.library,
     ...(sfx_library ? { sfx_library } : {}), ...(ambient_library ? { ambient_library } : {}),

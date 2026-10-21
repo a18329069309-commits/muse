@@ -6,7 +6,7 @@ permissions:
   contents: read
 jobs:
   offline:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
@@ -22,6 +22,7 @@ jobs:
           node --version
           ffmpeg -version
           ffprobe -version
+          ffmpeg -version | grep -E '^ffmpeg version 6\.1\.'
       - name: Check public files and JavaScript dependency paths
         run: node tools/check-public.mjs
       - name: Check offline demo runtime without model services

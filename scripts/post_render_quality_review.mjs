@@ -25,7 +25,7 @@ const mixResolvable=new Set(['actual_paired_seam_observation_required',
 
 // Read-only. A callback, an ASR receipt or a model name does not establish a listener.
 // No API session, credentials, request allowance or qualification is created here.
-export async function preflightPostRenderQuality(config={},runtime={}) {
+export async function preflightPostRenderQualityCapabilities(config={},runtime={}) {
   const missing=[];
   let backend=null;
   try {if(config.quality_review_audio_backend)backend=resolveAudioBackend(config.quality_review_audio_backend);}
@@ -46,20 +46,35 @@ export async function preflightPostRenderQuality(config={},runtime={}) {
     else if(typeof session.observer!=='function'||!Array.isArray(session.observerLedger))
       missing.push('actual_audio_observer_and_usage_ledger');
   }
-  // Current ApiSession/HostFileSession do not yet expose this preparation contract.
-  // Never expand the episode allowance or infer audio token cost from a text-only request.
-  if(!runtime.trialBudget||!['inspectLocal','reserve','complete'].every(key=>typeof runtime.trialBudget[key]==='function'))
-    missing.push('existing_shared_episode_budget_required');
+  // Capability discovery never creates, consumes or requires a film allowance.
   if(typeof session?.prepareAudioReviewRequest!=='function'
     ||session.audioReviewEvidenceContract!=='exact_audio_picture_submission_v1')
     missing.push('bound_audio_picture_submission_preparer_unsupported');
   return {schema_version:1,kind:'post_render_quality_readiness',policy:policy(config),
-    ready:missing.length===0,status:missing.length?'audio_review_backend_unavailable':'audio_review_backend_ready',
+    ready:false,capabilities_ready:missing.length===0,
+    status:missing.length?'audio_review_backend_unavailable':'audio_review_capabilities_ready',
     quality_status:'not_accepted',actual_audio_listened:false,production_approval:false,
     backend,qualification:qualification.binding??null,missing:[...new Set(missing)],
     new_requests:0,new_budget_created:false,manual_episode_audition_required:false,
     next_action:missing.length?'resolve_audio_review_executor_dependencies':'review_actual_rendered_mix',
     repair_dependencies:missing.map(reason=>({required_stage:'audio_review_capability',reason,executed:false}))};
+}
+
+export async function preflightPostRenderQuality(config={},runtime={}) {
+  const capabilities=await preflightPostRenderQualityCapabilities(config,runtime),missing=[...capabilities.missing];
+  if(!runtime.trialBudget||!['inspectLocal','reserve','complete','snapshot'].every(key=>typeof runtime.trialBudget[key]==='function'))
+    missing.push('existing_shared_episode_budget_required');
+  if(policy(config)==='automatic_required'&&(!/^[a-f0-9]{64}$/.test(runtime.qualityReviewIdentity?.source_video_sha256??'')
+    ||!path.isAbsolute(runtime.qualityReviewIdentity?.output_root??'')))
+    missing.push('bound_current_episode_budget_identity_required');
+  if(!missing.length&&runtime.qualityReviewIdentity){
+    const actual=(await runtime.trialBudget.snapshot()).identity,expected=runtime.qualityReviewIdentity;
+    if(actual?.source_video_sha256!==expected.source_video_sha256
+      ||typeof actual?.output_root!=='string'||path.resolve(actual.output_root)!==path.resolve(expected.output_root))
+      missing.push('bound_current_episode_budget_identity_required');
+  }
+  return {...capabilities,ready:missing.length===0,status:missing.length?'audio_review_backend_unavailable':'audio_review_backend_ready',
+    missing,repair_dependencies:missing.map(reason=>({required_stage:'audio_review_capability',reason,executed:false}))};
 }
 
 export function qualityReviewWindows(duration,seams=[]) {
@@ -118,6 +133,24 @@ export async function verifyRenderedAudioObservation(result,{backend,job,video})
     if(!stored.request_payload?.sha256||!stored.submission_receipt?.sha256)
       throw Error('quality_review_actual_picture_submission_required');
     const payload=await readJson(stored.request_payload.path),submission=await readJson(stored.submission_receipt.path);
+    if(!audioBackendMatches(submission,backend)||submission.provider!=='gemini'||submission.stage!=='mix'||submission.status!=='completed'
+      ||submission.request_id!==stored.request_id||submission.model!==backend.model_revision
+      ||submission.request_body_sha256!==digest(payload)
+      ||!same(submission.response,audit.raw_response)||audit.provider!=='gemini'||audit.purpose!=='mix'
+      ||audit.request_body_sha256!==submission.request_body_sha256
+      ||!same(audit.request_payload,stored.request_payload)||!same(audit.submission_receipt,stored.submission_receipt))
+      throw Error('quality_review_submission_receipt_mismatch');
+    if(stored.request_body_sha256!==submission.request_body_sha256||!stored.preparation?.sha256
+      ||!same(stored.preparation,audit.preparation))throw Error('quality_review_prepared_request_mismatch');
+    const preparation=await readJson(stored.preparation.path);
+    if(preparation.schema_version!==1||preparation.contract!=='exact_audio_picture_submission_v1'
+      ||!audioBackendMatches(preparation.backend,backend)||!same(preparation.request_payload,stored.request_payload)
+      ||preparation.request_body_sha256!==stored.request_body_sha256
+      ||preparation.job?.source_sha256!==job.source_sha256||preparation.job?.source_video_sha256!==job.source_video_sha256
+      ||!same(preparation.job?.source_range,job.source_range)||path.resolve(preparation.job?.path??'')!==path.resolve(job.path)
+      ||!same(preparation.identity?.input_audio,stored.input_audio)||preparation.identity?.pcm_sha256!==stored.pcm_sha256
+      ||preparation.options?.purpose!=='mix'||!same(preparation.options?.frames,[])||!same(preparation.options?.video,video))
+      throw Error('quality_review_prepared_request_mismatch');
     if(submission.request_body_sha256!==digest(payload)||submission.model!==backend.model_revision
       ||payload.model!==backend.model_revision||!Array.isArray(payload.input))throw Error('quality_review_submission_payload_mismatch');
     const mediaHash=kind=>payload.input.filter(row=>row.type===kind).map(row=>
@@ -136,6 +169,16 @@ export async function verifyRenderedAudioObservation(result,{backend,job,video})
 export async function reviewRenderedEpisode(input,runtime={}) {
   const {source,render_binding,config={}}=input;
   await verifyEvidenceBindings([source,render_binding]);
+  if(policy(config)==='automatic_required'){
+    const identity=runtime.qualityReviewIdentity,root=input.episode_output_root;
+    const inside=file=>{if(!path.isAbsolute(file??'')||!path.isAbsolute(root??''))return false;
+      const relative=path.relative(path.resolve(root),path.resolve(file));
+      return !path.isAbsolute(relative)&&relative!=='..'&&!relative.startsWith('..'+path.sep);};
+    if(identity?.source_video_sha256!==source.sha256||!path.isAbsolute(root??'')
+      ||!path.isAbsolute(identity?.output_root??'')||path.resolve(identity.output_root)!==path.resolve(root)
+      ||!inside(input.output_dir)||input.cache_dir&&!inside(input.cache_dir))
+      throw Error('quality_review_current_episode_budget_identity_mismatch');
+  }
   const readiness=await preflightPostRenderQuality(config,runtime);
   const record={schema_version:1,kind:'post_render_quality_review',source,render_binding,
     status:'quality_review_unresolved',quality_status:'not_accepted',actual_audio_listened:false,
@@ -244,7 +287,10 @@ export async function reviewRenderedEpisode(input,runtime={}) {
     if(await exists(verifiedFile)){
       const saved=await readJson(verifiedFile);await verifyEvidenceBindings(saved);
       if(!same(saved.render_binding,render_binding)||!same(saved.qualification,readiness.qualification)
-        ||!same(saved.job.source_range,source_range)||saved.job.source_sha256!==mixBinding.sha256)
+        ||!same(saved.job.source_range,source_range)||saved.job.source_sha256!==mixBinding.sha256
+        ||path.resolve(saved.job.path??'')!==path.resolve(mixBinding.path)||saved.job.source_video_sha256!==source.sha256
+        ||saved.video?.source_video_sha256!==preview.sha256||saved.video?.source_audio_sha256!==mixBinding.sha256
+        ||!same(saved.video?.source_range,source_range))
         throw Error('quality_review_cached_window_mismatch');
       const old=await readJson(saved.observation.path);
       const observed=await verifyRenderedAudioObservation({...old,file:saved.observation},
@@ -278,7 +324,8 @@ export async function reviewRenderedEpisode(input,runtime={}) {
       request_payload:prepared.request_payload,lease_id:lease.id,request_sha256:requestSha});
     let result;
     try {
-      result=await runtime.audioReviewSession.observeAudio(job,path.join(out,'observation'),{...options,timeoutMs:lease.timeoutMs});
+      result=await runtime.audioReviewSession.observeAudio(job,path.join(out,'observation'),
+        {...options,prepared_request:prepared,timeoutMs:lease.timeoutMs});
     }catch(error){await runtime.trialBudget.complete(lease,{runnerThrew:true});throw error;}
     // A fulfilled observeAudio call has ended. Preserve unknown outcomes above; do not
     // leave this completed invocation looking like an active child during recovery grants.

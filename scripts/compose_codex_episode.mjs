@@ -918,7 +918,8 @@ export async function createCodexEpisodeRuntime(config, runtime = {}) {
   // allocating an account client. Controllers retain this returned instance.
   shared.ensureBudget=async({config:episodeConfig=config}={})=>getBudget({...config,...episodeConfig});
   // A single-film profile already has its identity at factory admission.
-  if (isIndependentMusicPackTrial(config) && config.video && config.output_dir) shared.trialBudget = await getBudget(config);
+  if (isIndependentMusicPackTrial(config) && config.video && config.output_dir
+    && config.quality_review_policy!=='automatic_required') shared.trialBudget = await getBudget(config);
   shared.closeFilmBudget = async ({ config: active, directory } = {}) => {
     if (!active && !directory) return null;
     const root = outputRoot(active ?? { output_dir: directory }), saved = budgets.get(root);

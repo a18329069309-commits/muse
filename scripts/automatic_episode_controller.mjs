@@ -16,7 +16,7 @@ import { HostFileSession, HostResponsePendingError } from './host_runtime.mjs';
 import { createEpisodeMaterialRuntime } from './episode_material_runtime.mjs';
 import { runEpisodeQueue } from './episode_task_queue.mjs';
 import {isIndependentMusicPackTrial,validateIndependentMusicPackPolicy} from './independent_music_policy.mjs';
-import {preflightPostRenderQuality,reviewRenderedEpisode,verifyPostRenderQualityReview} from './post_render_quality_review.mjs';
+import {preflightPostRenderQualityCapabilities,preflightPostRenderQuality,reviewRenderedEpisode,verifyPostRenderQualityReview} from './post_render_quality_review.mjs';
 import {buildResearchAudioWindows} from './local_research_audio_observer.mjs';
 import {captureAutomaticStageFailure,resolvePersistedFailedNativeRoute} from './automatic_stage_failure_evidence.mjs';
 import {boundAssemblyGapRuntimeSpec,preflightBoundAssemblyGapControllerRecovery,
@@ -693,9 +693,11 @@ export async function composeAutomaticEpisode(config, runtime = {}) {
   const stateFile = path.join(directory, 'automatic-state.json'), lockFile = path.join(directory, 'automatic.lock');
   const lock = await acquireLock(lockFile);
   await lock.writeFile(JSON.stringify({ pid: process.pid, source, started_at: now() }));
+  const strictQualityReview=config.quality_review_policy==='automatic_required',
+    initialFilmTrialBudget=runtime.session?.trialBudget??runtime.trialBudget??null;
   let state, activeConfig = structuredClone(config), session = runtime.session, materialAdapters = {}, stageAudio = null,
     failedStoryPartRecovery = null, boundedAssemblyGapProof = null, boundSoundDecisionProof=null,
-    filmTrialBudget=runtime.ensureBudget?null:runtime.session?.trialBudget??runtime.trialBudget;
+    filmTrialBudget=runtime.ensureBudget||strictQualityReview?null:initialFilmTrialBudget;
   const configForStage = (base = activeConfig, { render = false,assembly = false } = {}) => {
     const {delivery_archive,render_decode_cache,sfx_audibility_repair,sfx_offline_repair_root,
       assembly_source_capacity_revision,assembly_gap_contract_revision,...stageConfig}=base;
@@ -713,8 +715,11 @@ export async function composeAutomaticEpisode(config, runtime = {}) {
         ...stageAudio.local.observation_files.map(row => row.path)])] } : {}),
   }; };
   const shared = () => session ? { ...runtime, ...materialAdapters, session,
-    trialBudget: session.trialBudget ?? filmTrialBudget ?? runtime.trialBudget, createSession: undefined }
-    : { ...runtime, ...materialAdapters, trialBudget:filmTrialBudget??runtime.trialBudget, session: undefined, createSession: runtime.createSession ? async input => {
+    ...(strictQualityReview?{qualityReviewIdentity:{source_video_sha256:source.sha256,output_root:directory}}:{}),
+    trialBudget: strictQualityReview?filmTrialBudget:session.trialBudget ?? filmTrialBudget ?? runtime.trialBudget, createSession: undefined }
+    : { ...runtime, ...materialAdapters,
+      ...(strictQualityReview?{qualityReviewIdentity:{source_video_sha256:source.sha256,output_root:directory}}:{}),
+      trialBudget:strictQualityReview?filmTrialBudget:filmTrialBudget??runtime.trialBudget, session: undefined, createSession: runtime.createSession ? async input => {
       session = await runtime.createSession({ ...input, episode_id: runtime.episode_id ?? null,
         ...(failedStoryPartRecovery ? { failedStoryPartRecovery } : {}) }); return session;
     } : undefined };
@@ -956,7 +961,7 @@ export async function composeAutomaticEpisode(config, runtime = {}) {
     // This read-only capability check precedes every new analysis/material/model/render action.
     // Enabling review never invalidates completed story, selections or prior diagnostic renders.
     if(config.quality_review_policy==='automatic_required'){
-      const readiness=await preflightPostRenderQuality(config,shared());
+      const readiness=await preflightPostRenderQualityCapabilities(config,shared());
       const identity=digest(readiness);
       if(state.quality_readiness_identity!==identity){
         state.quality_readiness_history??=[];
@@ -968,7 +973,7 @@ export async function composeAutomaticEpisode(config, runtime = {}) {
         }else state.quality_readiness=await saveJson(file,readiness);
         state.quality_readiness_identity=identity;
       }else await verifyEvidenceBindings(state.quality_readiness);
-      if(!readiness.ready)return finish('audio_review_backend_unavailable',{
+      if(!readiness.capabilities_ready)return finish('audio_review_backend_unavailable',{
         quality_readiness:state.quality_readiness,quality_status:'not_accepted',artistic_acceptance:'not_accepted',
         actual_audio_listened:false,manual_episode_audition_required:false,
         repair_dependencies:readiness.repair_dependencies,next_action:readiness.next_action});
@@ -989,6 +994,24 @@ export async function composeAutomaticEpisode(config, runtime = {}) {
         quality_status:'not_assessed',actual_audio_listened:false,production_approval:false,new_model_calls:0});
     }
     if(typeof runtime.ensureBudget==='function')filmTrialBudget=await runtime.ensureBudget({config:activeConfig});
+    else if(strictQualityReview)filmTrialBudget=initialFilmTrialBudget;
+    if(strictQualityReview){
+      const readiness=await preflightPostRenderQuality(config,shared()),identity=digest(readiness);
+      if(state.quality_readiness_identity!==identity){
+        state.quality_readiness_history??=[];
+        if(state.quality_readiness)state.quality_readiness_history.push(state.quality_readiness);
+        const file=path.join(directory,'quality-readiness',`${identity}.json`);
+        if(await exists(file)){
+          if(digest(await readJson(file))!==identity)throw Error('automatic_quality_readiness_changed');
+          state.quality_readiness=await bind(file);
+        }else state.quality_readiness=await saveJson(file,readiness);
+        state.quality_readiness_identity=identity;
+      }else await verifyEvidenceBindings(state.quality_readiness);
+      if(!readiness.ready)return finish('audio_review_backend_unavailable',{
+        quality_readiness:state.quality_readiness,quality_status:'not_accepted',artistic_acceptance:'not_accepted',
+        actual_audio_listened:false,manual_episode_audition_required:false,
+        repair_dependencies:readiness.repair_dependencies,next_action:readiness.next_action});
+    }
     if(activeConfig.trial_wall_clock_policy)await filmTrialBudget?.inspectLocal({stage:'automatic_analysis_preparation_admission'});
     let snapshot = await frozenMaterials(activeConfig);
     // A resolver may have published new stores and saved them before a process exit.
@@ -1386,7 +1409,7 @@ export async function composeAutomaticEpisode(config, runtime = {}) {
               state.quality_review_identity=identity;
             }
             const review=await invoke('quality_review',out=>stages.reviewRenderedEpisode({source,render_binding:resultBinding,
-              analysis_binding:analysis.artifact,config,output_dir:out,render_files:files,
+              analysis_binding:analysis.artifact,config,episode_output_root:directory,output_dir:out,render_files:files,
               cache_dir:path.join(directory,'quality-review-cache')},shared()),
               value=>typeof value.quality_status==='string','quality-review-record.json');
             const verified=await verifyPostRenderQualityReview(state.stages.quality_review.result_binding,
@@ -1654,7 +1677,7 @@ export async function composeAutomaticEpisode(config, runtime = {}) {
     // retry even if transport failure and deadline expiry happen together.
     // This classifies the current stop, not the timeout's sole causal origin.
     if(error.message==='codex_cli_timeout'){
-      const budget=session?.trialBudget??filmTrialBudget??runtime.trialBudget;
+      const budget=strictQualityReview?filmTrialBudget:session?.trialBudget??filmTrialBudget??runtime.trialBudget;
       if(typeof budget?.inspectLocal==='function'){
         try{await budget.inspectLocal({stage:'automatic_timeout_budget_classification'});}
         catch(budgetError){

@@ -14,7 +14,8 @@ for (const key of Object.keys(environment)) {
 }
 const tests = ['test_episode_task_queue.mjs','test_sound_arc_plan.mjs','test_render_audio.mjs',
   'test_music_edit_operation_contract.mjs','test_sound_edit_decision_contract.mjs','test_prepare_episode.mjs',
-  'test_doctor.mjs','test_demo_offline.mjs'];
+  'test_doctor.mjs','test_demo_offline.mjs','test_prepare_review_window.mjs',
+  'test_deployment_profile.mjs','test_api_audio_review.mjs','test_quality_review_budget.mjs'];
 const start=Date.now();let output='';
 const child = spawn(process.execPath,['--import',pathToFileURL(path.join(root,'tools/no-network.mjs')).href,
   '--test','--test-reporter=tap','--test-concurrency=1',...tests.map(file=>path.join(root,'tests',file))],

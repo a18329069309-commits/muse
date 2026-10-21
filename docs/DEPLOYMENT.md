@@ -44,8 +44,14 @@ node tools/doctor.mjs --profile ABSOLUTE_DEPLOYMENT_JSON --json
 
 该命令不会创建自动任务、生成授权记录、登记测试替身、上传影片或进行模型调用。没有提供 profile 时不会搜寻本机的私人配置。配置检查成功也不能替代曲库权利核查、资格检查、全部运行时可用性或完整新片验收。
 
-已提供通用合成媒体的固定编排离线演示与公开复现入口。完整自动模式的可重建部署生成器、获准真实新片的单集及批量端到端验证仍列在路线图中；本文件不提供能冒充完整可运行配置的示意 JSON。代码中的独立试验部署生成器仍要求真实运行时、素材发布、授权和证据输入，本轮不会为了凑“开箱即用”而自动填造这些记录。
+已提供通用合成媒体的固定编排离线演示与公开复现入口。独立试验部署生成器仍要求真实运行时、素材发布、授权和证据输入，不自动填造这些记录。获准真实新片的单集及批量端到端验证仍列在路线图中；本文件不提供能冒充完整可运行配置的示意 JSON。
 
-## 严格自动听审的已知缺口
+## 新独立部署与严格听审接口
 
-`quality_review_policy=automatic_required` 不只是一个配置开关。[现有预检](../scripts/post_render_quality_review.mjs) 还要求真实音画听审会话、共享影片预算、`prepareAudioReviewRequest` 和 `exact_audio_picture_submission_v1` 契约。当前标准会话实现尚不提供该请求准备契约，因此不能仅靠一份 JSON 或换一个模型名称就声称已开启完整自动听审。已有部署生成器也不能视为此路线的完整迁移器；必须单独核对后端、资格、预算和适配器。本轮保留拒绝执行的门禁，不伪造“已听过”或“已批准”记录。
+`createIndependentTrialDeployment` 仅构建新目录。它保留 `quality_review_audio_backend` 与 `quality_review_qualification`，校验文件哈希及后端身份；严格模式要求已有、有效的 schema2 听审资格。缺项、绑定失效或目标目录已存在时拒绝构建。默认诊断模式与部署 schema1 不变，不自动开启严格听审，也不生成资格或听审批准记录。构建时记录的范围授权不是艺术认可，更不能重置或绕过旧任务的预算。
+
+`quality_review_policy=automatic_required` 不只是一个配置开关。[预检](../scripts/post_render_quality_review.mjs) 先检查后端、真实资格及会话适配器，全部可用后才绑定当前影片的预算并完成全面检查。局部能力可用不等于整体就绪，不能回退使用其他影片的共享账本。
+
+标准 `ApiSession` 已提供 `prepareAudioReviewRequest` 与 `exact_audio_picture_submission_v1`。首版仅登记 `gemini-3.8-flash` 的静态视频路线，固定 1 FPS、低分辨率；仅支持带同步视频的 `purpose=mix`，不接受额外 frames。准备阶段不联网；提交必须显式提供同一份准备结果。Host 路线仍明确不支持，真实服务、模型可用性、资格及完整听感没有因此获得验收。请求绑定、预算估算、最小超时和 pending 恢复规则见 [听审接口契约](AUDIO_REVIEW_CONTRACT.md)。
+
+本轮零真实模型请求，不执行私人任务迁移，不改现用安装。测试替身和合成媒体不能作为真实资格、真实配乐质量或听审通过证明。
