@@ -1,0 +1,23 @@
+name: Offline engineering checks
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  offline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24'
+      - name: Install media test tools
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - name: Check public files and JavaScript dependency paths
+        run: node tools/check-public.mjs
+      - name: Run synthetic offline tests without model services
+        run: node tools/test-offline.mjs

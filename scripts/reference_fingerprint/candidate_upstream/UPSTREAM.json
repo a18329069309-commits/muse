@@ -1,0 +1,18 @@
+{
+  "repository": "https://github.com/Snoop2023/video-background-music-identification-skill",
+  "revision": "ad61b9753be54f86048faee9383e8963705f2cb7",
+  "files": [
+    {
+      "file": "LICENSE",
+      "url": "https://raw.githubusercontent.com/Snoop2023/video-background-music-identification-skill/ad61b9753be54f86048faee9383e8963705f2cb7/LICENSE",
+      "sha256": "9dd83754ad376d4b0a04883a6bb34c04a29e214c503e0f987c17d74b7a47d7af"
+    },
+    {
+      "file": "compare_candidate.py",
+      "url": "https://raw.githubusercontent.com/Snoop2023/video-background-music-identification-skill/ad61b9753be54f86048faee9383e8963705f2cb7/skills/video-background-music-identification/scripts/compare_candidate.py",
+      "sha256": "cb464019f4ad94692d89ad25098949565cfcf5d852c90164d02617f402f60220"
+    }
+  ],
+  "upstream_ci": "https://github.com/Snoop2023/video-background-music-identification-skill/actions/runs/30756329519",
+  "local_audio_verification": "pending"
+}

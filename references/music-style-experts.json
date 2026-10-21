@@ -1,0 +1,600 @@
+{
+  "schema_version": 1,
+  "status": "proposed_not_qualified",
+  "evidence_status": "editorial_hypothesis",
+  "policy": {
+    "coverage_preference": "continuous_episode_music",
+    "coverage_is_universal_short_drama_rule": false,
+    "shared_audio_catalog": true,
+    "load_only_relevant_experts": true,
+    "generation_policy": "verified_gap_only_fine_no_generation_fast",
+    "approval_requires_actual_audio": true,
+    "metadata_and_similarity_do_not_approve_music": true,
+    "brief_withdrawal_requires_director_reason": true
+  },
+  "director_required_fields": [
+    "facts",
+    "audience_alignment",
+    "expectation",
+    "event_state",
+    "sound_action",
+    "expert_ids",
+    "timeline",
+    "alternatives",
+    "evidence_status"
+  ],
+  "experts": [
+    {
+      "id": "crisis_action",
+      "name": "迫近危机与反击动作",
+      "load_when": [
+        "confirmed_imminent_danger",
+        "danger_flashback_or_premonition",
+        "failed_action_then_renewed_attack"
+      ],
+      "audience_expectation": "主角脱困、救人或阻止危险，不提前宣告安全",
+      "positive_sound_skeleton": [
+        "可辨脉冲或 ostinato",
+        "有攻击感的节奏与织体",
+        "受挫抽层后再次恢复实际推进"
+      ],
+      "development_states": [
+        "pressure",
+        "approach",
+        "attempt",
+        "setback",
+        "renewed_drive",
+        "release",
+        "aftermath"
+      ],
+      "wrong_counterexamples": [
+        "危机闪回配怀旧",
+        "未成功已用凯旋",
+        "静态低频冒充推进",
+        "每个拳头切歌"
+      ],
+      "retrieval_descriptors": [
+        "dark hybrid action music, urgent rhythmic ostinato, distorted bass pulse, aggressive percussion, rising orchestral tension"
+      ],
+      "structured_filters": {
+        "actual_audio_required": true,
+        "verified_source_state_required_before_adoption": true
+      },
+      "source_and_edit_rules": [
+        "按压力、尝试、受挫、再攻、释放选择真实源段",
+        "保留主题但实际撤走并恢复推进层",
+        "不为音乐拍点移动人物动作",
+        "独立关键击点不能代替整段张力"
+      ],
+      "vocal_policy": "密集解释台词以无词段优先；决心与兑现可用实际核词且不抢对白的短唱词",
+      "sfx_collaboration": [
+        "先核原片已有物理击打",
+        "riser 或 stinger 服务主要转向",
+        "避免音乐和音效重击叠满"
+      ],
+      "acceptance_tests": [
+        "危机未听成安全",
+        "受挫与再攻编配可指出",
+        "核心动作释放区别于前段",
+        "关键对白清楚"
+      ],
+      "verified_case_refs": [],
+      "evidence_status": "editorial_hypothesis",
+      "source_tag_queries": [
+        "electronic rock metal aggressive energetic",
+        "classical orchestral soundtrack epic"
+      ],
+      "source_query_status": "editorial_retrieval_preference_not_audio_classification"
+    },
+    {
+      "id": "controlled_revenge",
+      "name": "冷控反制与女频爽感",
+      "load_when": [
+        "evidence_reveal",
+        "deception_exposed",
+        "controlled_trap",
+        "public_identity_reversal",
+        "opponent_feigned_grief"
+      ],
+      "audience_expectation": "掌握信息的主角拆穿对方、改变话语权",
+      "positive_sound_skeleton": [
+        "有性格的低音鼓 groove 或短音动机",
+        "台词推进中维持冷控",
+        "揭证前抽层后实际亮出 riff"
+      ],
+      "development_states": [
+        "control",
+        "pressure",
+        "setup",
+        "reveal",
+        "reversal",
+        "dominance"
+      ],
+      "wrong_counterexamples": [
+        "假哭配真悲伤",
+        "优雅反制配肉搏",
+        "每句讽刺同一轰声",
+        "不同方案使用同一压力曲"
+      ],
+      "retrieval_descriptors": [
+        "confident tight bass groove, sharp rhythmic strings, sly restrained electronic beat, assertive hook, controlled tension"
+      ],
+      "structured_filters": {
+        "actual_audio_required": true,
+        "verified_source_state_required_before_adoption": true
+      },
+      "source_and_edit_rules": [
+        "选能稳住对白的动机与实际 change-up",
+        "观点不变的连续交锋保持主题",
+        "关键台词前抽层、句后进入真实释放段",
+        "人物性别不代替声音方向"
+      ],
+      "vocal_policy": "登场、走场或反制后可短词；核词义是否让主角认错或为反派洗白",
+      "sfx_collaboration": [
+        "揭证、反应与权力转移使用不同轻重",
+        "普通字幕和剪辑点不自动加击点"
+      ],
+      "acceptance_tests": [
+        "冷控与受困可分",
+        "主角气势变化可指出",
+        "声音钩子可辨",
+        "对白不被风格压住"
+      ],
+      "verified_case_refs": [],
+      "evidence_status": "editorial_hypothesis",
+      "source_tag_queries": [
+        "hiphop funk jazz groove",
+        "electronic downtempo bass"
+      ],
+      "source_query_status": "editorial_retrieval_preference_not_audio_classification"
+    },
+    {
+      "id": "family_rescue",
+      "name": "亲情救场与命运改写",
+      "load_when": [
+        "family_rescue",
+        "protection",
+        "acceptance",
+        "sacrifice",
+        "past_harm_repaired",
+        "destiny_changed"
+      ],
+      "audience_expectation": "伤害停止、人物被看见、命运被改变",
+      "positive_sound_skeleton": [
+        "受辱保留未解决动机与压力",
+        "救场出现实际行动推进",
+        "照料与接纳由旋律和织体展开"
+      ],
+      "development_states": [
+        "hurt",
+        "danger",
+        "rescue_drive",
+        "acceptance",
+        "warm_opening",
+        "future_commitment"
+      ],
+      "wrong_counterexamples": [
+        "全篇低声钢琴",
+        "救场悲伤无冲力",
+        "拥抱结束后才展开",
+        "受虐题材持续铺恐怖"
+      ],
+      "retrieval_descriptors": [
+        "urgent emotional rescue music, rhythmic strings building toward warm melodic release, intimate piano, hopeful forward motion"
+      ],
+      "structured_filters": {
+        "actual_audio_required": true,
+        "verified_source_state_required_before_adoption": true
+      },
+      "source_and_edit_rules": [
+        "救场推进与情感展开分别检索真实段",
+        "释放随关系改变而非切脸",
+        "可延续共同动机保留救场到照料的因果",
+        "增益渐强不能当旋律发展"
+      ],
+      "scene_strategies": [
+        {
+          "condition": "active_rescue_or_protection",
+          "sound_goal": "行动动机和人物气势先成立，随后向照顾展开；保留与人物有关的真实声音线索",
+          "retrieval_descriptor": "characterful rhythmic rescue groove, confident motif, forward bass motion, clear melodic identity",
+          "failure_boundary": "受保护者被动悲伤覆盖施救者的主动性"
+        },
+        {
+          "condition": "care_recognition_or_vulnerable_acceptance",
+          "sound_goal": "试探到理解的关系变化由实际旋律、动机或织体发展承担；不将接纳直接等同全局释然",
+          "retrieval_descriptor": "intimate searching melody, repeating gentle pulse, gradual harmonic and melodic opening, tender emotional forward motion",
+          "failure_boundary": "低声暖铺底不发展、拥抱后才开始释放，或保持伤害的恐怖观点"
+        },
+        {
+          "condition": "commitment_to_another_persons_freedom",
+          "sound_goal": "从照顾延续人物或关系身份，转为支持未来选择的主动、向前态度；承接前句再兑现",
+          "retrieval_descriptor": "warm confident melodic groove, hopeful rhythmic lift, uplifting forward commitment, clear developing motif",
+          "failure_boundary": "突然换成无人物关联的欢快曲、完成式煽情封闭仍未决的未来"
+        }
+      ],
+      "strategy_selection_rule": "只采用当前已确认条件的策略和验收项；救场、照顾、接纳、支持未来不是每段都要完成的全套发展",
+      "vocal_policy": "改写命运宣言之后的对白空窗可短歌词；实际核词义、语言和碰撞位置",
+      "sfx_collaboration": [
+        "危险物理声查原轨",
+        "接纳处减少威胁强调",
+        "温情高潮不做连续爆炸"
+      ],
+      "acceptance_tests": [
+        "救场有行动驱动",
+        "照料有可感温暖",
+        "命运改写有向前态度",
+        "三段实际发展能听见"
+      ],
+      "verified_case_refs": [],
+      "evidence_status": "editorial_hypothesis",
+      "source_tag_queries": [
+        "rock pop energetic hopeful",
+        "classical piano acoustic emotional"
+      ],
+      "source_query_status": "editorial_retrieval_preference_not_audio_classification"
+    },
+    {
+      "id": "supernatural_dread",
+      "name": "超自然危险与身份悬念",
+      "load_when": [
+        "unseen_threat",
+        "unknown_supernatural_rule",
+        "unconfirmed_identity",
+        "anomaly_becomes_real",
+        "supernatural_relationship_or_world_texture"
+      ],
+      "audience_expectation": "识别未知危险或身份；角色阵营决定恐惧与接纳方向",
+      "positive_sound_skeleton": [
+        "不稳定纹理与窄动机",
+        "低频脉冲逐渐收紧",
+        "异常揭露改变实际纹理或节奏",
+        "主角掌控后转人物权威"
+      ],
+      "development_states": [
+        "uncertainty",
+        "approach",
+        "revelation",
+        "danger",
+        "control",
+        "unresolved_hook"
+      ],
+      "wrong_counterexamples": [
+        "友好鬼怪拥抱铺恐怖",
+        "嗡声拉到底无变化",
+        "未知信息提前恐怖大击",
+        "按怪物外形决定威胁方向"
+      ],
+      "retrieval_descriptors": [
+        "unsettling pulsing suspense, evolving dissonant texture, eerie sparse motif, controlled supernatural tension"
+      ],
+      "structured_filters": {
+        "actual_audio_required": true,
+        "verified_source_state_required_before_adoption": true
+      },
+      "source_and_edit_rules": [
+        "按未知、迫近、揭露、掌控选择真实段",
+        "未知身份集尾不作明亮完成终止",
+        "追击不能默认使用静态 drone",
+        "接纳阶段可联用亲情包"
+      ],
+      "scene_strategies": [
+        {
+          "condition": "confirmed_present_danger",
+          "sound_goal": "只在实际威胁成立时推动危险；按迫近、揭露、控制发展",
+          "retrieval_descriptor": "evolving urgent supernatural pulse, unstable motif, attacking tension with dynamic development",
+          "failure_boundary": "根据鬼怪外形把过去叙述写成现时袭击"
+        },
+        {
+          "condition": "supernatural_character_seeks_or_receives_acceptance",
+          "sound_goal": "关系安全为主，按需保留世界的异质声色；与亲情专家协作，让试探到被理解发生实际发展",
+          "retrieval_descriptor": "tender otherworldly melodic motif, gentle persistent pulse, curious intimate texture opening toward trust",
+          "failure_boundary": "持续恐怖、凭拥抱宣布所有悬念解决，或抹去本片人物与世界的音乐性格"
+        }
+      ],
+      "strategy_selection_rule": "当前关系或世界质感任务只调用相应策略；危险推进与未决尾钩仅在事实确实需要时验收，不覆盖关系接纳",
+      "vocal_policy": "信息模糊优先器乐或无词纹理；仪式与主题有词须核语义和故事世界",
+      "sfx_collaboration": [
+        "主观异象与现实物理声分层",
+        "未知怪物声不冒充已发生事实",
+        "生成缺口明确谁何时发何声"
+      ],
+      "acceptance_tests": [
+        "未知到揭露增长成立",
+        "阵营决定威胁方向",
+        "亲密不因外形误配恐怖",
+        "集尾保留未解决信息"
+      ],
+      "verified_case_refs": [],
+      "evidence_status": "editorial_hypothesis",
+      "source_tag_queries": [
+        "ambient drone experimental dark",
+        "electronic industrial tense"
+      ],
+      "source_query_status": "editorial_retrieval_preference_not_audio_classification"
+    },
+    {
+      "id": "court_authority",
+      "name": "古装权谋与身份威势",
+      "load_when": [
+        "court_interrogation",
+        "political_trap",
+        "public_identity",
+        "status_shift",
+        "collective_submission"
+      ],
+      "audience_expectation": "真相或权力改变被公开确认",
+      "positive_sound_skeleton": [
+        "稳定权威脉冲",
+        "紧绷节制的器乐动机",
+        "实际确认身份后扩大音域与阵势"
+      ],
+      "development_states": [
+        "scheme",
+        "interrogation",
+        "pressure",
+        "proof",
+        "authority_confirmed",
+        "command_fulfilled"
+      ],
+      "wrong_counterexamples": [
+        "信息交锋全用战争凯旋",
+        "古装自动堆民族器乐",
+        "假行礼提前宣布胜局",
+        "每句换人就换主题"
+      ],
+      "retrieval_descriptors": [
+        "regal restrained rhythmic tension, dark strings and ceremonial percussion, commanding motif, controlled orchestral expansion"
+      ],
+      "structured_filters": {
+        "actual_audio_required": true,
+        "verified_source_state_required_before_adoption": true
+      },
+      "source_and_edit_rules": [
+        "长权力交锋维持共同主题",
+        "变化随证据与地位",
+        "公开确认后使用真实大阵势段",
+        "民族器乐未知不批量贴真标签"
+      ],
+      "vocal_policy": "仪式、登场可短词；证词处避免竞争，听不懂不能假定适合古代",
+      "sfx_collaboration": [
+        "印章、拔剑与脚步查原片",
+        "命令主观重音不等于真实物理声",
+        "不因切镜一律补鼓"
+      ],
+      "acceptance_tests": [
+        "谋局与胜局可分",
+        "主题有控制感",
+        "威势由真实展开产生",
+        "公开确认前未泄露音乐答案"
+      ],
+      "verified_case_refs": [],
+      "evidence_status": "editorial_hypothesis",
+      "source_tag_queries": [
+        "classical orchestral soundtrack",
+        "folk world traditional"
+      ],
+      "source_query_status": "editorial_retrieval_preference_not_audio_classification"
+    },
+    {
+      "id": "romantic_tension",
+      "name": "情感拉扯与都市恋爱",
+      "load_when": [
+        "attraction",
+        "relationship_testing",
+        "misunderstanding",
+        "intimacy_grows",
+        "betrayal",
+        "reunion"
+      ],
+      "audience_expectation": "关系升级、矛盾被确认或误会得到变化",
+      "positive_sound_skeleton": [
+        "身体感律动与清晰动机",
+        "靠近时实际旋律或织体展开",
+        "误会抽薄或转不稳定",
+        "甜宠可明朗推进"
+      ],
+      "development_states": [
+        "testing",
+        "approach",
+        "misunderstanding",
+        "betrayal",
+        "confirmation",
+        "intimacy"
+      ],
+      "wrong_counterexamples": [
+        "危机和亲密同一软抒情",
+        "背叛时放浪漫宣誓",
+        "只以 BPM 判断暧昧",
+        "关系未解集尾用完成和声"
+      ],
+      "retrieval_descriptors": [
+        "intimate modern pop groove, warm clear melodic hook, restrained romantic tension, pulsing bass and soft percussion",
+        "bittersweet tense relationship music, unresolved melody, restrained rhythmic motion"
+      ],
+      "structured_filters": {
+        "actual_audio_required": true,
+        "verified_source_state_required_before_adoption": true
+      },
+      "source_and_edit_rules": [
+        "试探、误会、确认分别找真实段",
+        "未解决关系不使用已完成段",
+        "旋律发展对应人物关系",
+        "有无词版本先核伴奏和相位"
+      ],
+      "vocal_policy": "有词是可选主方案；核实际词义、节奏和人物视角；关键发言可接同曲器乐段",
+      "sfx_collaboration": [
+        "呼吸与衣物仅补真实缺口",
+        "主观心跳注明情绪设计",
+        "先核原声避免重复"
+      ],
+      "acceptance_tests": [
+        "关系判断与画面一致",
+        "词不抢或反驳人物",
+        "试探与确认有可听变化",
+        "不是题材有恋爱就只用甜歌"
+      ],
+      "verified_case_refs": [],
+      "evidence_status": "editorial_hypothesis",
+      "source_tag_queries": [
+        "pop soul rnb love",
+        "acoustic piano emotional"
+      ],
+      "source_query_status": "editorial_retrieval_preference_not_audio_classification"
+    },
+    {
+      "id": "comic_mischief",
+      "name": "喜剧机锋与轻快反转",
+      "load_when": [
+        "comic_misunderstanding",
+        "disguise",
+        "banter",
+        "small_clever_victory",
+        "awkward_reversal"
+      ],
+      "audience_expectation": "理解铺垫并在反转时获得包袱",
+      "positive_sound_skeleton": [
+        "灵巧律动与短音动机",
+        "铺垫保持前進",
+        "包袱前改变节奏或抽层",
+        "反应后恢复或变形"
+      ],
+      "development_states": [
+        "setup",
+        "misdirection",
+        "punchline",
+        "reaction",
+        "recovery"
+      ],
+      "wrong_counterexamples": [
+        "每句台词同一 boing",
+        "真受害配滑稽",
+        "欢快抹掉悬念",
+        "古怪音色反复滥用"
+      ],
+      "retrieval_descriptors": [
+        "playful rhythmic groove, quirky plucked motif, agile bass line, cheeky upbeat music with clear pauses"
+      ],
+      "structured_filters": {
+        "actual_audio_required": true,
+        "verified_source_state_required_before_adoption": true
+      },
+      "source_and_edit_rules": [
+        "选可停顿和恢复的真实乐句",
+        "包袱与演员反应连看",
+        "不按字幕位置自动截乐",
+        "连续覆盖可抽层而不必停整曲"
+      ],
+      "vocal_policy": "姿态或蒙太奇可短词；语言谐音必须真实核词",
+      "sfx_collaboration": [
+        "只补音乐未承担的滑稽强调",
+        "真实碰撞不无理由替换为卡通声"
+      ],
+      "acceptance_tests": [
+        "铺垫与兑现成立",
+        "不损害应被同情的人物",
+        "反应后恢复自然",
+        "声效不遮台词节奏"
+      ],
+      "verified_case_refs": [],
+      "evidence_status": "editorial_hypothesis",
+      "source_tag_queries": [
+        "jazz swing funk funny",
+        "pop electronic happy playful"
+      ],
+      "source_query_status": "editorial_retrieval_preference_not_audio_classification"
+    },
+    {
+      "id": "awakening_payoff",
+      "name": "能力觉醒与高燃成长",
+      "load_when": [
+        "power_awakens",
+        "hero_entrance",
+        "identity_revealed",
+        "upgrade",
+        "overwhelming_counterattack"
+      ],
+      "audience_expectation": "被压制者获得主动性并兑现实力",
+      "positive_sound_skeleton": [
+        "主题弱形态维持被压制阶段",
+        "决心时亮出核心 riff 或节奏",
+        "能力落地时实际释放",
+        "余波保留记忆与后续空间"
+      ],
+      "development_states": [
+        "suppression",
+        "resolve",
+        "buildup",
+        "ability_lands",
+        "release",
+        "aftermath",
+        "next_threat"
+      ],
+      "wrong_counterexamples": [
+        "最强段第一秒到底",
+        "只有增益无动机",
+        "异世界自动史诗合唱",
+        "失败时持续凯旋"
+      ],
+      "retrieval_descriptors": [
+        "bold memorable riff, driving rock or hybrid electronic beat, rising anticipation into powerful rhythmic release, heroic forward momentum"
+      ],
+      "structured_filters": {
+        "actual_audio_required": true,
+        "verified_source_state_required_before_adoption": true
+      },
+      "source_and_edit_rules": [
+        "找实际 buildup、drop 或 riff、余波",
+        "管弦电子摇滚可以形成真不同骨架备选",
+        "无法连接就换曲或记具体缺口",
+        "不得以增益假装编配"
+      ],
+      "vocal_policy": "态度钩子可优先评估短词版；重要解释保留无词段；未知词义不签采用",
+      "sfx_collaboration": [
+        "能力与系统声按故事世界",
+        "物理击打和主观强调分工",
+        "尾音不遮下一句"
+      ],
+      "acceptance_tests": [
+        "主动性在声音中出现",
+        "释放相对前段有区别",
+        "未预支下一轮高潮",
+        "跨剧主题辨识度经实际比较"
+      ],
+      "verified_case_refs": [],
+      "evidence_status": "editorial_hypothesis",
+      "source_tag_queries": [
+        "rock metal energetic",
+        "electronic hiphop powerful",
+        "classical soundtrack epic"
+      ],
+      "source_query_status": "editorial_retrieval_preference_not_audio_classification"
+    }
+  ],
+  "primary_sources": [
+    {
+      "url": "https://github.com/xxayt/MGSV",
+      "supports": "曲目与曲内时间区间任务",
+      "does_not_support": "已具备短剧审美或公开原音乐库"
+    },
+    {
+      "url": "https://github.com/LAION-AI/CLAP",
+      "supports": "实际音频和文本特征检索",
+      "does_not_support": "相似度直接作为导演审美认可"
+    },
+    {
+      "url": "https://github.com/MTG/mtg-jamendo-dataset",
+      "supports": "多标签分类与曲目音频分层",
+      "does_not_support": "作者标签当听审认可或短剧适配"
+    },
+    {
+      "url": "https://www.boomboxpost.com/blog/2021/1/8/creating-risers-stingers-and-hits",
+      "supports": "音乐与独立强调音协同取舍",
+      "does_not_support": "每次转折必须重击"
+    },
+    {
+      "url": "https://www.scottbuckley.com.au/library/",
+      "supports": "作者描述及风格器乐召回",
+      "does_not_support": "每首曲自动适合红果短剧"
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "description": "Illustrative placeholders only. Supply your own licensed audio and its actual SHA-256 before execution.",
+  "assets": [
+    {
+      "asset_id": "your-licensed-source",
+      "path": "./media/source.wav",
+      "sha256": "REPLACE_WITH_REAL_SHA256",
+      "source_range": [0, 8]
+    }
+  ]
+}

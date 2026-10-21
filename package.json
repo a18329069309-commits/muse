@@ -1,0 +1,15 @@
+{
+  "name": "muse-short-drama-sound",
+  "version": "0.1.0-preview.1",
+  "private": true,
+  "description": "Experimental story-aware short-drama scoring and aligned audio rendering",
+  "author": "汪小昇",
+  "license": "MIT",
+  "type": "module",
+  "engines": { "node": ">=24.19.0 <25" },
+  "scripts": {
+    "test": "node tools/test-offline.mjs",
+    "check": "node tools/check-public.mjs"
+  },
+  "repository": { "type": "git", "url": "https://github.com/a18329069309-commits/muse.git" }
+}

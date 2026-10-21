@@ -1,0 +1,12 @@
+{
+  "url": "https://github.com/dpwe/audfprint",
+  "commit": "cb03ba99feafd41b8874307f0f4e808a6ce34362",
+  "source_modified": false,
+  "files": [
+    "audfprint_analyze.py",
+    "audfprint_match.py",
+    "audio_read.py",
+    "hash_table.py",
+    "stft.py"
+  ]
+}
