@@ -17,6 +17,11 @@ jobs:
           node-version: '24'
       - name: Install media test tools
         run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - name: Report runtime versions
+        run: |
+          node --version
+          ffmpeg -version
+          ffprobe -version
       - name: Check public files and JavaScript dependency paths
         run: node tools/check-public.mjs
       - name: Run synthetic offline tests without model services

@@ -6,8 +6,8 @@
   "files": [
     {
       "path": ".github/workflows/offline.yml",
-      "public_sha256": "3988e76970589a8123a849a709a6347a99234ce2434b2ac129bae92a2930ea32",
-      "public_bytes": 728,
+      "public_sha256": "c9e332a490d7c93408d4509ae034c52bbf1ab1afeaa6516fc42602eda63dec55",
+      "public_bytes": 859,
       "origin": "public-packaging"
     },
     {
@@ -36,8 +36,8 @@
     },
     {
       "path": "docs/VALIDATION.md",
-      "public_sha256": "5ae030d6ae0094ca38b7f30cc28ec70dabf2475a5d648a29f0eb3a17cf08c69f",
-      "public_bytes": 1796,
+      "public_sha256": "60cc4c6191a083445009ee5f86c0c0ad9bbdebaff4f032704563512f26b0ffd2",
+      "public_bytes": 2676,
       "origin": "public-packaging"
     },
     {
@@ -54,7 +54,7 @@
     },
     {
       "path": "README.md",
-      "public_sha256": "4f22cb0d76a41d59e538647d5218714a741336c2975b2b48f9d910ce46a64572",
+      "public_sha256": "3083a98ae0b1951e632c40bd25652db39779551e62a1ebe998bd789f7b12291a",
       "public_bytes": 4057,
       "origin": "public-packaging"
     },
@@ -1566,9 +1566,9 @@
       "path": "scripts/prepare_episode.mjs",
       "source_sha256": "aeac86a994e6ed3e95e25bf1b796786bc39593f65b65db21a0e8e43b54f4eead",
       "bytes": 8859,
-      "public_sha256": "aeac86a994e6ed3e95e25bf1b796786bc39593f65b65db21a0e8e43b54f4eead",
-      "public_bytes": 8859,
-      "modified_for_public": false
+      "public_sha256": "3515c9087b46f7f0cbc05c4b5fde777829fc61b1e850a865c03fd7305b29d8db",
+      "public_bytes": 9161,
+      "modified_for_public": true
     },
     {
       "path": "scripts/prepare_fsd50k_candidates.py",
@@ -2633,6 +2633,12 @@
       "modified_for_public": false
     },
     {
+      "path": "tests/test_prepare_episode.mjs",
+      "public_sha256": "d2ec05a80494d42f7980d9b0fc81825c05af39f0e36f70fdd8fc71dce4882091",
+      "public_bytes": 2097,
+      "origin": "public-packaging"
+    },
+    {
       "path": "tests/test_render_audio.mjs",
       "source_sha256": "3e00769f881b9d516709203d55e9b07fb789c592eeae981da090b7d59204aded",
       "bytes": 19316,
@@ -2676,8 +2682,8 @@
     },
     {
       "path": "tools/test-offline.mjs",
-      "public_sha256": "bf8745a6442b6766f09205efac9f870a61f3b2a235e35431005f3725e86a9de1",
-      "public_bytes": 2165,
+      "public_sha256": "8d9d5d1777a35c29a50f071dde8284f76f44bb7cefb9f0f033b777e6516929fb",
+      "public_bytes": 2192,
       "origin": "public-packaging"
     }
   ],
@@ -2693,7 +2699,7 @@
     "caches",
     "account settings"
   ],
-  "finalized_at": "2026-10-21T17:02:58.729Z",
+  "finalized_at": "2026-10-21T17:11:31.909Z",
   "license": "MIT",
   "note": "source_sha256 and bytes describe the original exported source; public_sha256 and public_bytes describe the public file. Manifest excludes itself and local test artifacts."
 }

@@ -106,8 +106,12 @@ export async function prepareEpisode(options) {
   const sum = terms => terms.length === 1 ? terms[0]
     : `(${sum(terms.slice(0, Math.ceil(terms.length / 2)))})+(${sum(terms.slice(Math.ceil(terms.length / 2)))})`;
   const select = sum(selected.map(frame => `eq(n\\,${frame.index})`));
+  // Explicit display-aspect dimensions work on FFmpeg 6.1 as well as newer builds.
+  // Merely dropping reset_sar would distort anamorphic sources; setsar alone
+  // changes metadata, not geometry. Round only the final bounded dimensions.
+  const thumbnailScale="scale=w='max(1,round(1280*min(dar,1)))':h='max(1,round(1280/max(dar,1)))',setsar=1";
   await executeMedia('ffmpeg', ['-v', 'error', '-n', '-copyts', '-i', source, '-map', '0:v:0', '-an',
-    '-vf', `select=${select},scale=1280:1280:force_original_aspect_ratio=decrease:reset_sar=1`,
+    '-vf', `select=${select},${thumbnailScale}`,
     '-fps_mode', 'passthrough', '-q:v', '3', path.join(output, 'frames', 'frame_%05d.jpg')]);
   const frameFiles = await readdir(path.join(output, 'frames'));
   if (frameFiles.length !== selected.length) throw new Error('Extracted frame count does not match probed frames.');

@@ -13,7 +13,7 @@ for (const key of Object.keys(environment)) {
     ||/(?:API_KEY|ACCESS_TOKEN|AUTH_TOKEN|SECRET_KEY|PASSWORD)$/i.test(key)) delete environment[key];
 }
 const tests = ['test_episode_task_queue.mjs','test_sound_arc_plan.mjs','test_render_audio.mjs',
-  'test_music_edit_operation_contract.mjs','test_sound_edit_decision_contract.mjs'];
+  'test_music_edit_operation_contract.mjs','test_sound_edit_decision_contract.mjs','test_prepare_episode.mjs'];
 const start=Date.now();let output='';
 const child = spawn(process.execPath,['--import',pathToFileURL(path.join(root,'tools/no-network.mjs')).href,
   '--test','--test-reporter=tap','--test-concurrency=1',...tests.map(file=>path.join(root,'tests',file))],
