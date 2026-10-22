@@ -54,8 +54,8 @@
     },
     {
       "path": "docs/VALIDATION.md",
-      "public_sha256": "e479fcd91cecbced50b5535ac244f18ec28272624d6a239621c0adc67e08ffc7",
-      "public_bytes": 12669,
+      "public_sha256": "1b335155229c88e4aece72f0aa91329cc187b70b30d261e6847529acdd79395e",
+      "public_bytes": 13662,
       "origin": "public-packaging"
     },
     {
@@ -2771,7 +2771,7 @@
     "caches",
     "account settings"
   ],
-  "finalized_at": "2026-10-22T05:03:57.900Z",
+  "finalized_at": "2026-10-22T05:11:04.460Z",
   "license": "MIT",
   "note": "source_sha256 and bytes describe the original exported source; public_sha256 and public_bytes describe the public file. Manifest excludes itself and local test artifacts."
 }
