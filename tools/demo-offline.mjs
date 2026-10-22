@@ -38,6 +38,25 @@ export function parseDemoArgs(args) {
   return options;
 }
 
+function failureGuidance(code) {
+  if (code === 'EEXIST') return {
+    message: '输出目录已存在。',
+    action: '请选择父目录下全新的输出目录，不会复用或覆盖已有目录。',
+  };
+  if (code === 'ENOENT') return {
+    message: '找不到所需路径。',
+    action: '请确认输出目录的父目录存在且可访问，并检查命令中的路径。',
+  };
+  if (code.startsWith('demo_child_')) return {
+    message: '演示子进程未成功完成。',
+    action: '请先运行 node tools/doctor.mjs 检查环境；保留输出目录和 demo-report.json，再使用新目录重试。',
+  };
+  return {
+    message: '演示未成功完成。',
+    action: '请先运行 node tools/doctor.mjs 检查环境；如已生成输出，请保留输出目录和 demo-report.json，再使用新目录重试。',
+  };
+}
+
 export async function runEpisodeWorker({ directory, index }) {
   await runBounded(process.execPath, ['--import', pathToFileURL(path.join(PROJECT_ROOT, 'tools/no-network.mjs')).href,
     path.join(PROJECT_ROOT, 'tools/demo-engine.mjs'), String(index), directory],
@@ -89,8 +108,9 @@ export async function runOfflineDemo({ out, episodes = 2 } = {}, { runEpisode = 
       report.episodes.push({ episode: index, status: 'technical_ok',
         report: `${name}/episode-report.json`, preview: `${name}/preview.mp4` });
     } catch (error) {
+      const code = demoErrorCode(error);
       report.episodes.push({ episode: index, status: 'failed',
-        error: demoErrorCode(error), directory: name });
+        error: code, directory: name, ...failureGuidance(code) });
     }
     await save();
   }
@@ -110,6 +130,9 @@ if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.ar
       if (result.report.status !== 'technical_ok') process.exitCode = 1;
     }
   } catch (error) {
-    console.error(demoErrorCode(error)); process.exitCode = 1;
+    const code = demoErrorCode(error), guidance = failureGuidance(code);
+    console.error(code);
+    if (guidance) console.error(`${guidance.message}\n${guidance.action}`);
+    process.exitCode = 1;
   }
 }

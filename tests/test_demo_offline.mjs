@@ -1,5 +1,7 @@
+import '../tools/no-network.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { execFile } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { mkdir, mkdtemp, readFile, readdir, writeFile, symlink } from 'node:fs/promises';
 import path from 'node:path';
@@ -15,6 +17,88 @@ const root = await mkdtemp(path.join(state, 'demo-tests-'));
 const location = name => path.join(root, name);
 const cli = args => runBounded(process.execPath, [path.join(PROJECT_ROOT, 'tools/demo-offline.mjs'), ...args],
   { cwd: PROJECT_ROOT, env: cleanDemoEnvironment(root), timeout: 60000, limit: 1024 * 1024 });
+// Test-side observation of the public CLI, including expected nonzero exits.
+// Production child errors deliberately do not expose their raw output.
+const observeCli = (args, env = cleanDemoEnvironment(root)) => new Promise((resolve, reject) => {
+  execFile(process.execPath, [path.join(PROJECT_ROOT, 'tools/demo-offline.mjs'), ...args],
+    { cwd: PROJECT_ROOT, env, timeout: 60000, maxBuffer: 1024 * 1024, encoding: 'utf8', windowsHide: true },
+    (error, stdout, stderr) => {
+      if (error && typeof error.code !== 'number') reject(error);
+      else resolve({ code: error?.code ?? 0, stdout, stderr });
+    });
+});
+
+test('public CLI explains an existing output directory without changing its contents or error code', async () => {
+  const existing = location('existing-cli');
+  await mkdir(existing);
+  const sentinel = path.join(existing, 'sentinel.txt');
+  await writeFile(sentinel, 'existing private content must remain untouched');
+  const before = await readFile(sentinel);
+  const result = await observeCli(['--out', existing, '--episodes', '1']);
+  assert.equal(result.code, 1);
+  assert.equal(result.stdout, '');
+  assert.equal(result.stderr.split(/\r?\n/)[0], 'EEXIST');
+  assert.match(result.stderr, /输出目录已存在/);
+  assert.match(result.stderr, /请选择.*全新.*输出目录/);
+  assert.deepEqual(await readdir(existing), ['sentinel.txt']);
+  assert.deepEqual(await readFile(sentinel), before);
+});
+
+test('public CLI explains a missing path without creating its missing parent', async () => {
+  const missingParent = location('missing-cli-parent');
+  const result = await observeCli(['--out', path.join(missingParent, 'leaf'), '--episodes', '1']);
+  assert.equal(result.code, 1);
+  assert.equal(result.stdout, '');
+  assert.equal(result.stderr.split(/\r?\n/)[0], 'ENOENT');
+  assert.match(result.stderr, /找不到所需路径/);
+  assert.match(result.stderr, /父目录存在且可访问/);
+  await assert.rejects(readdir(missingParent), { code: 'ENOENT' });
+});
+
+test('public CLI missing media tools returns one failure JSON with guidance matching the preserved report', async () => {
+  const directory = location('missing-tools-cli');
+  const result = await observeCli(['--out', directory, '--episodes', '1'],
+    { ...cleanDemoEnvironment(root), PATH: '' });
+  assert.equal(result.code, 1);
+  assert.equal(result.stderr, '');
+  const output = JSON.parse(result.stdout);
+  const report = JSON.parse(await readFile(path.join(directory, 'demo-report.json'), 'utf8'));
+  assert.equal(output.status, 'failed');
+  assert.equal(report.schema_version, 1);
+  assert.deepEqual(output.episodes, report.episodes);
+  assert.equal(output.episodes[0].error, 'demo_child_failed_exit_1');
+  assert.deepEqual(Object.keys(output.episodes[0]).sort(),
+    ['action', 'directory', 'episode', 'error', 'message', 'status']);
+  assert.match(output.episodes[0].message, /演示子进程未成功完成/);
+  assert.match(output.episodes[0].action, /node tools\/doctor\.mjs/);
+  assert.match(output.episodes[0].action, /保留.*demo-report\.json.*新目录重试/);
+  assert.doesNotMatch(result.stdout, /缺少 FFmpeg|未安装 FFmpeg|spawn |ENOENT|at file:/);
+});
+
+test('embedding failures publish only fixed recovery guidance and never unknown codes, messages or child output', async () => {
+  const secret = 'PREVIEW4_SYNTHETIC_SECRET_DO_NOT_PUBLISH';
+  const failures = [async () => { throw new Error(secret); },
+    async () => { throw { code: `${secret}\nEEXIST`, message: secret, stack: secret }; },
+    async () => runBounded(process.execPath, ['-e',
+      `process.stdout.write(${JSON.stringify(secret)}); process.stderr.write(${JSON.stringify(secret)}); process.exit(7)`],
+    { cwd: root, env: cleanDemoEnvironment(root) })];
+  for (const [index, runEpisode] of failures.entries()) {
+    const directory = location(`redacted-failure-${index}`);
+    const result = await runOfflineDemo({ out: directory, episodes: 1 }, { runEpisode });
+    const saved = await readFile(path.join(directory, 'demo-report.json'), 'utf8');
+    assert.equal(saved.includes(secret), false);
+    assert.equal(JSON.stringify(result).includes(secret), false);
+    assert.equal(result.report.schema_version, 1);
+    assert.equal(result.report.status, 'failed');
+    assert.deepEqual(JSON.parse(saved), result.report);
+    const row = result.report.episodes[0];
+    assert.equal(row.error, index === 2 ? 'demo_child_failed_exit_7' : 'demo_episode_failed');
+    assert.equal(row.message, index === 2 ? '演示子进程未成功完成。' : '演示未成功完成。');
+    assert.match(row.action, /node tools\/doctor\.mjs/);
+    assert.match(row.action, /保留.*demo-report\.json.*新目录重试/);
+    assert.doesNotMatch(row.action, /缺少 FFmpeg|未安装 FFmpeg/);
+  }
+});
 
 test('demo help and invalid arguments have no output-directory side effects', async () => {
   const before = await readdir(state);
@@ -146,6 +230,7 @@ test('single-episode public CLI really renders non-silent stems, retained proxy 
   assert.equal(result.status, 'technical_ok'); assert.equal(result.output, directory);
   const report = JSON.parse(await readFile(path.join(directory, 'demo-report.json'), 'utf8'));
   assert.equal(report.episodes.length, 1); assert.equal(report.episodes[0].preview, 'episode-01/preview.mp4');
+  assert.deepEqual(Object.keys(result.episodes[0]).sort(), ['episode', 'preview', 'report', 'status']);
   await assertEpisode(path.join(directory, 'episode-01'));
 });
 
@@ -172,8 +257,12 @@ test('failed first episode does not prevent second real render; failure report s
   assert.equal(result.report.status, 'failed');
   assert.deepEqual(result.report.episodes.map(row => row.status), ['failed', 'technical_ok']);
   assert.equal(result.report.episodes[0].error, 'demo_episode_failed');
+  assert.equal(result.report.episodes[0].message, '演示未成功完成。');
+  assert.match(result.report.episodes[0].action, /node tools\/doctor\.mjs/);
+  assert.deepEqual(Object.keys(result.report.episodes[1]).sort(), ['episode', 'preview', 'report', 'status']);
   const saved = await readFile(path.join(directory, 'demo-report.json'), 'utf8');
   assert.equal(saved.includes('private token'), false);
+  assert.deepEqual(JSON.parse(saved), result.report);
   await assertEpisode(path.join(directory, 'episode-02'));
   // A real executable failure must surface as a nonzero CLI result and persist its report.
   const failedCli = location('missing-runtime');

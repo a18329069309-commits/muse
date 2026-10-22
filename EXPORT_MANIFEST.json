@@ -18,14 +18,14 @@
     },
     {
       "path": "CHANGELOG.md",
-      "public_sha256": "772c1e8f72e358d72aa5bf27d847246872b7d1545c55da1eb21c2870a510dd17",
-      "public_bytes": 1795,
+      "public_sha256": "4aae5df7819a9e98fa56cb59b8f243c3d2c8f40ea82e8c7b1953aaa7b1f25af7",
+      "public_bytes": 2513,
       "origin": "public-packaging"
     },
     {
       "path": "CONTRIBUTING.md",
-      "public_sha256": "8199c0f89dc3789f811a706b8d98e17fe6f721c92f9aef3e2395c1eaef54d8a4",
-      "public_bytes": 990,
+      "public_sha256": "08ea3d6863c8fbc8f90fff14d7e22ca7a692cabeae45e589ab3407fc06a513ba",
+      "public_bytes": 3138,
       "origin": "public-packaging"
     },
     {
@@ -36,26 +36,26 @@
     },
     {
       "path": "docs/DEPLOYMENT.md",
-      "public_sha256": "11023e2a18a2798d8ce4e419fd3bc3c2de2ec3f898bcb79862eaf5742d58f53a",
-      "public_bytes": 5882,
+      "public_sha256": "89a18736633b2df390a00482bc053c52114d24e2371ab9d89ee18d4fad236355",
+      "public_bytes": 7434,
       "origin": "public-packaging"
     },
     {
       "path": "docs/QUICKSTART.md",
-      "public_sha256": "735389ea8035c8491a7ff73297533cf7143e800184f0dd4ec4af33ff27e00579",
-      "public_bytes": 5233,
+      "public_sha256": "ab814f9c0cf14c0a510f75805a700fa268e767a988a38ee9d0d1a55efadd7b0e",
+      "public_bytes": 13171,
       "origin": "public-packaging"
     },
     {
       "path": "docs/ROADMAP.md",
-      "public_sha256": "208b9650f13e762efeeaba11b0c437f71f71057ee941e45e94b291cad1c75493",
-      "public_bytes": 1067,
+      "public_sha256": "5ececf4a3ce47f39251d4622f76e3b7719b201ab587e729f4aebee613b945610",
+      "public_bytes": 1861,
       "origin": "public-packaging"
     },
     {
       "path": "docs/VALIDATION.md",
-      "public_sha256": "655d8bc89dac5be8f4fc8e3b8af84c6b6cab839c5c316b5f7b414ed6e7d750e8",
-      "public_bytes": 9208,
+      "public_sha256": "e479fcd91cecbced50b5535ac244f18ec28272624d6a239621c0adc67e08ffc7",
+      "public_bytes": 12669,
       "origin": "public-packaging"
     },
     {
@@ -66,14 +66,14 @@
     },
     {
       "path": "package.json",
-      "public_sha256": "93eecaf123a1d2cfdf23dc0e5ae0320357e5362e1d48786531ba5d9af59b53f5",
+      "public_sha256": "1c9250beb34c9fc31b6c833e2c7a49b11ffa71a2004256ce37d464b0af17ae35",
       "public_bytes": 600,
       "origin": "public-packaging"
     },
     {
       "path": "README.md",
-      "public_sha256": "72b8bb9d1b32e2efcf10656130ea4ec30cf9edcc1d11b606f0d22f8e5603e9ae",
-      "public_bytes": 5089,
+      "public_sha256": "5aeef461b4d8628d8ef054dd875a534f9b1bc364ae3d0ab9e64ea1e97113b54f",
+      "public_bytes": 6490,
       "origin": "public-packaging"
     },
     {
@@ -2642,8 +2642,8 @@
     },
     {
       "path": "tests/test_demo_offline.mjs",
-      "public_sha256": "0964308a3308f6c1e9c93e5548f72cb80853764e87f2fde7dea0a5c295ebe4b3",
-      "public_bytes": 11585,
+      "public_sha256": "b08a6e1af27b6a37759c2eb10096ed1da61f0c0fbd8e33af21f1ac2846ab2a7e",
+      "public_bytes": 16863,
       "origin": "public-packaging"
     },
     {
@@ -2736,8 +2736,8 @@
     },
     {
       "path": "tools/demo-offline.mjs",
-      "public_sha256": "fa3e231781f62b18d0460c79fc130ac8661df92e265ccec8bd2d592685968f0d",
-      "public_bytes": 6001,
+      "public_sha256": "1b8952c7eb98d8e225818a61beb1fd87898c6d3d94bcb4ff635d46acc51f49f8",
+      "public_bytes": 7033,
       "origin": "public-packaging"
     },
     {
@@ -2771,7 +2771,7 @@
     "caches",
     "account settings"
   ],
-  "finalized_at": "2026-10-21T19:31:54.574Z",
+  "finalized_at": "2026-10-22T05:03:57.900Z",
   "license": "MIT",
   "note": "source_sha256 and bytes describe the original exported source; public_sha256 and public_bytes describe the public file. Manifest excludes itself and local test artifacts."
 }

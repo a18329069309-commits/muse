@@ -1,18 +1,20 @@
 # 完整自动运行的配置边界
 
-如果只是首次安装或想查看实际渲染输出，先按 [快速开始](QUICKSTART.md) 执行 `node tools/doctor.mjs` 和 `node tools/demo-offline.mjs`。这条离线演示路线不需要下列生产资料，也不替代完整自动模式。
+适用于 `0.1.0-preview.4`。如果只是首次准备源码或想查看实际渲染输出，先按 [快速开始](QUICKSTART.md) 在 Windows PowerShell、D 盘普通目录中手工准备 Node **`>=24.19.0 <25`**、FFmpeg 与 ffprobe，再执行 `node tools/doctor.mjs` 和 `node tools/demo-offline.mjs`。Git 与无 `.git` 的源码 ZIP 均可运行这条离线路线，不需要下列生产资料。
+
+**公开预览尚未提供从零到真实新片自动配乐的完整验收路线。** 下文是生产输入与接口边界，不是已验收的一键部署教程。离线演示通过、标准适配器存在或配置加载通过，都不能证明普通新部署已经跑通完整自动分析、选曲、渲染与听审。真实自动配乐及听审尚未验收。
 
 本源码预览保留实际生产研究链，但不是无配置即用的服务。单片入口形状为：
 
-```sh
-node scripts/compose_uploaded_episode.mjs --profile ABSOLUTE_DEPLOYMENT_JSON --video ABSOLUTE_VIDEO --out ABSOLUTE_NEW_OUTPUT
+```powershell
+node scripts/compose_uploaded_episode.mjs --profile "D:\自己的部署\deployment.json" --video "D:\获准影片\第 1 集.mp4" --out "D:\自己的输出\全新任务目录"
 ```
 
-批量入口把 `--video` 替换为 `--batch ABSOLUTE_BATCH_JSON`。批次仅提供作品身份与影片，不预先填写歌曲、逐段 cue 或编辑结果。
+上面的路径只说明 CLI 形状，不能原样执行或当作已具备运行时的配置；先准备真实输入及既有父目录，末级使用全新名称，不要选择私人旧任务或已有部署目录。批量入口把 `--video` 替换为 `--batch "D:\自己的批次\batch.json"`；路径含空格或中文时保留完整引号。批次仅提供作品身份与影片，不预先填写歌曲、逐段 cue 或编辑结果。
 
 执行前至少准备：
 
-1. Node.js 24.x、Python、FFmpeg 和 ffprobe；具体 Python 库随启用的检索、观察或渲染路线安装，仓库不提供假装覆盖全部路线的统一 requirements。
+1. Node.js `>=24.19.0 <25`、Python、FFmpeg 和 ffprobe；具体 Python 库随启用的检索、观察或渲染路线安装，仓库不提供假装覆盖全部路线的统一 requirements。离线演示无需 Python，不能由此推导生产路线也无需 Python。
 2. 自己获准使用的素材库、索引、实际源窗与真实许可记录。独立音乐包与参考原曲是不同路线，不混用授权。
 3. 明确的模型/宿主运行时、可用能力、预算及数据上传范围。源码预览不附账户、订阅会话或 API 密钥，不承诺完整自动模式零成本。
 4. 与实际库和策略对应的 `consumer_publication` 及 SHA-256 绑定；运行时会校验一致性。不要用占位哈希或伪造的“已批准”JSON绕过门禁。
@@ -38,13 +40,13 @@ node scripts/compose_uploaded_episode.mjs --profile ABSOLUTE_DEPLOYMENT_JSON --v
 
 已有真实部署配置时可以运行：
 
-```sh
-node tools/doctor.mjs --profile ABSOLUTE_DEPLOYMENT_JSON --json
+```powershell
+node tools/doctor.mjs --profile "D:\自己的部署\deployment.json" --json
 ```
 
-该命令不会创建自动任务、生成授权记录、登记测试替身、上传影片或进行模型调用。没有提供 profile 时不会搜寻本机的私人配置。配置检查成功也不能替代曲库权利核查、资格检查、全部运行时可用性或完整新片验收。
+该命令不会创建自动任务、生成授权记录、登记测试替身、上传影片或进行模型调用。没有提供 profile 时不会搜寻本机的私人配置。`profile_checked=true` 只说明显式提供了配置，不是校验通过；检查 `checks` 中的 `deployment_profile`。配置检查失败时可能仍有 `offline_ready=true`，但 `ok=false`；`automatic_readiness` 始终是 `unverified`。配置检查成功也不能替代曲库权利核查、资格检查、全部运行时可用性或完整新片验收。
 
-已提供通用合成媒体的固定编排离线演示与公开复现入口。独立试验部署生成器仍要求真实运行时、素材发布、授权和证据输入，不自动填造这些记录。获准真实新片的单集及批量端到端验证仍列在路线图中；本文件不提供能冒充完整可运行配置的示意 JSON。
+已提供通用合成媒体的固定编排离线演示与公开复现入口。独立试验部署生成器仍要求真实运行时、素材发布、授权和证据输入，不自动填造这些记录。标准会话适配器和注入式接口的测试，不等于所有生产入口已自动组装好真实服务。获准真实新片的单集及批量端到端验证仍列在路线图中；本文件不提供能冒充完整可运行配置的示意 JSON。单元测试 fixture、隔离 transport、合成演示报告和其他用户的测试记录均不能登记成真实授权、资格或本片听审证明。
 
 ## 新独立部署与严格听审接口
 
@@ -54,4 +56,4 @@ node tools/doctor.mjs --profile ABSOLUTE_DEPLOYMENT_JSON --json
 
 标准 `ApiSession` 已提供 `prepareAudioReviewRequest` 与 `exact_audio_picture_submission_v1`。首版仅登记 `gemini-3.8-flash` 的静态视频路线，固定 1 FPS、低分辨率；仅支持带同步视频的 `purpose=mix`，不接受额外 frames。准备阶段不联网；提交必须显式提供同一份准备结果。Host 路线仍明确不支持，真实服务、模型可用性、资格及完整听感没有因此获得验收。请求绑定、预算估算、最小超时和 pending 恢复规则见 [听审接口契约](AUDIO_REVIEW_CONTRACT.md)。
 
-本轮零真实模型请求，不执行私人任务迁移，不改现用安装。测试替身和合成媒体不能作为真实资格、真实配乐质量或听审通过证明。
+本轮仅改善离线演示提示和公开说明，零真实模型请求，不执行私人任务迁移，不改现用安装，也不承诺真实自动流程零费用。测试替身和合成媒体不能作为真实资格、真实配乐质量或听审通过证明。

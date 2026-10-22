@@ -1,6 +1,6 @@
 {
   "name": "w-auto-score",
-  "version": "0.1.0-preview.3",
+  "version": "0.1.0-preview.4",
   "private": true,
   "description": "W自动配乐 / W Auto Score: experimental story-aware short-drama scoring and aligned audio rendering",
   "author": "汪小昇",
